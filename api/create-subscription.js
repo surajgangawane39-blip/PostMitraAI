@@ -7,22 +7,37 @@ export default async function handler(req, res) {
   }
 
   try {
-    const Razorpay = require("razorpay");
+    const auth = Buffer.from(
+      process.env.RAZORPAY_KEY_ID +
+      ":" +
+      process.env.RAZORPAY_KEY_SECRET
+    ).toString("base64");
 
-    const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET
-    });
+    const response = await fetch(
+      "https://api.razorpay.com/v1/subscriptions",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": "Basic " + auth,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          plan_id: "plan_Th9P9SJnTunuk1",
+          total_count: 12,
+          customer_notify: 1
+        })
+      }
+    );
 
-    const subscription = await razorpay.subscriptions.create({
-      plan_id: "plan_Th9P9SJnTunuk1",
-      total_count: 12,
-      customer_notify: 1
-    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error?.description || "Razorpay subscription failed");
+    }
 
     return res.status(200).json({
       success: true,
-      subscription_id: subscription.id
+      subscription_id: data.id
     });
 
   } catch (error) {
@@ -34,3 +49,4 @@ export default async function handler(req, res) {
     });
   }
 }
+    
