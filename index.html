@@ -1139,7 +1139,30 @@ function clearPost() {
     "Your generated post will appear here.\nEnter a topic and click “Generate AI post”.";
 
 }
+async function upgradeToPro() {
+  try {
+    const response = await fetch("/api/create-subscription", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
 
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Subscription creation failed");
+    }
+
+    alert("Subscription created successfully!");
+    console.log("Razorpay Subscription ID:", data.subscription_id);
+
+  } catch (error) {
+    console.error("UPGRADE ERROR:", error);
+    alert("❌ Upgrade failed: " + error.message);
+  }
+}
+  
 </script>
 
 <div id="authModal" style="
