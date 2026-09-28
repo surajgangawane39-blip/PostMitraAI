@@ -673,12 +673,14 @@ try {
       },
 
       body: JSON.stringify({
-        topic: topic,
-        language: language,
-        tone: tone,
-        length: length,
-        audience: audience
-      })
+  topic: topic,
+  language: language,
+  tone: tone,
+  length: length,
+  audience: audience,
+  user_id: user.id,
+  access_token: (await supabaseClient.auth.getSession()).data.session?.access_token
+})
 
     });
 
@@ -689,19 +691,6 @@ try {
     }
 
  const raw = data.post;
- const newCount = generationCount + 1;
-
-const { error: usageUpdateError } = await supabaseClient
-  .from("usage")
-  .upsert({
-    user_id: user.id,
-    generations: newCount,
-    updated_at: new Date().toISOString()
-  });
-
-if (usageUpdateError) {
-  console.error("USAGE UPDATE ERROR:", usageUpdateError);
-}
 
 const scoreSection = raw.split("SCORES")[1] || "";
 const bestMatch = scoreSection.match(/BEST POST:\s*POST\s*(\d+)/i);
