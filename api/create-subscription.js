@@ -7,6 +7,15 @@ export default async function handler(req, res) {
   }
 
   try {
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      return res.status(400).json({
+        success: false,
+        error: "User ID is required"
+      });
+    }
+
     const auth = Buffer.from(
       process.env.RAZORPAY_KEY_ID +
       ":" +
@@ -24,7 +33,10 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           plan_id: "plan_ThLa3txnGYdqWG",
           total_count: 12,
-          customer_notify: 1
+          customer_notify: 1,
+          notes: {
+            postmitra_user_id: user_id
+          }
         })
       }
     );
@@ -32,7 +44,10 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error?.description || "Razorpay subscription failed");
+      throw new Error(
+        data.error?.description ||
+        "Razorpay subscription failed"
+      );
     }
 
     return res.status(200).json({
@@ -49,4 +64,3 @@ export default async function handler(req, res) {
     });
   }
 }
-    
