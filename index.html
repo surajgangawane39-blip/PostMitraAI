@@ -1170,12 +1170,22 @@ function clearPost() {
 }
 async function upgradeToPro() {
   try {
-    const response = await fetch("/api/create-subscription", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
+   const user = (await supabaseClient.auth.getUser()).data.user;
+
+if (!user) {
+  alert("Please login before upgrading to Pro.");
+  return;
+}
+
+const response = await fetch("/api/create-subscription", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    user_id: user.id
+  })
+});
 
     const data = await response.json();
 
