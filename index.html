@@ -794,6 +794,46 @@ async function improvePost(postText) {
 
   result.innerHTML =
     '<div class="loading">✨ AI is improving your post...</div>';
+    const user = (await supabaseClient.auth.getUser()).data.user;
+
+  if (!user) {
+    result.innerHTML = `
+      <div class="empty">
+        🔐 Please login to use Improve Post.
+      </div>
+    `;
+    return;
+  }
+
+  const { data: usage, error: usageError } = await supabaseClient
+    .from("usage")
+    .select("plan")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (usageError) {
+    console.error(usageError);
+    result.innerHTML = `
+      <div class="empty">
+        ❌ Unable to check your Pro plan.
+      </div>
+    `;
+    return;
+  }
+
+  if (usage?.plan !== "pro") {
+    result.innerHTML = `
+      <div class="empty">
+        🚀 Improve Post is a Pro feature.<br><br>
+        Upgrade to Pro to use AI Improve.
+        <br><br>
+        <button onclick="upgradeToPro()" class="primary-btn">
+          Upgrade to Pro
+        </button>
+      </div>
+    `;
+    return;
+  }
 
   try {
     const response = await fetch("/api/improve", {
