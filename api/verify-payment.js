@@ -47,9 +47,34 @@ export default async function handler(req, res) {
       });
     }
 
+    const supabaseResponse = await fetch(
+      `${process.env.SUPABASE_URL}/rest/v1/usage?user_id=eq.${user_id}`,
+      {
+        method: "PATCH",
+        headers: {
+          "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY,
+          "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+          "Content-Type": "application/json",
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify({
+          plan: "pro",
+          generations: 0,
+          updated_at: new Date().toISOString()
+        })
+      }
+    );
+
+    if (!supabaseResponse.ok) {
+      const errorText = await supabaseResponse.text();
+      throw new Error(
+        "Supabase update failed: " + errorText
+      );
+    }
+
     return res.status(200).json({
       success: true,
-      message: "Payment verified successfully"
+      message: "Payment verified and Pro plan activated"
     });
 
   } catch (error) {
