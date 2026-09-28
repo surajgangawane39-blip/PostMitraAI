@@ -769,7 +769,7 @@ async function improvePost(postText) {
     '<div class="loading">✨ AI is improving your post...</div>';
 
   try {
-    const response = await fetch("http://127.0.0.1:3000/improve", {
+    const response = await fetch("/api/improve", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
