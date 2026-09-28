@@ -836,15 +836,31 @@ async function improvePost(postText) {
   }
 
   try {
-    const response = await fetch("/api/improve", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        post: postText
-      })
-    });
+    const user = (await supabaseClient.auth.getUser()).data.user;
+
+if (!user) {
+  throw new Error("Please login first");
+}
+
+const {
+  data: { session }
+} = await supabaseClient.auth.getSession();
+
+if (!session) {
+  throw new Error("Session not found");
+}
+
+const response = await fetch("/api/improve", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    post: postText,
+    user_id: user.id,
+    access_token: session.access_token
+  })
+});
 
     const data = await response.json();
 
