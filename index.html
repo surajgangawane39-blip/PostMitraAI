@@ -1156,8 +1156,28 @@ async function upgradeToPro() {
       throw new Error(data.error || "Subscription creation failed");
     }
 
-    alert("Subscription created successfully!");
-    console.log("Razorpay Subscription ID:", data.subscription_id);
+    const options = {
+      key: "rzp_test_Th9bBEp1cL7aue",
+      subscription_id: data.subscription_id,
+      name: "PostMitra AI",
+      description: "PostMitra AI Pro - ₹199/month",
+      image: "",
+      handler: function (response) {
+        console.log("Payment successful:", response);
+
+        alert("✅ Payment successful! Your Pro plan will be activated after verification.");
+      },
+      prefill: {
+        name: "",
+        email: ""
+      },
+      theme: {
+        color: "#7c3aed"
+      }
+    };
+
+    const razorpay = new Razorpay(options);
+    razorpay.open();
 
   } catch (error) {
     console.error("UPGRADE ERROR:", error);
