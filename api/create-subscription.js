@@ -22,7 +22,7 @@ export default async function handler(req, res) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          plan_id: "plan_Th9P9SJnTunuk1",
+          plan_id: "plan_ThLa3txnGYdqWG",
           total_count: 12,
           customer_notify: 1
         })
