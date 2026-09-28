@@ -7,12 +7,70 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { post } = req.body;
+    const {
+      post,
+      user_id,
+      access_token
+    } = req.body;
 
-    if (!post) {
+    if (!post || !user_id || !access_token) {
       return res.status(400).json({
         success: false,
-        error: "No post provided"
+        error: "Missing required data"
+      });
+    }
+
+    // Verify logged-in Supabase user
+    const userResponse = await fetch(
+      `${process.env.SUPABASE_URL}/auth/v1/user`,
+      {
+        headers: {
+          "apikey": process.env.SUPABASE_URL
+            ? process.env.SUPABASE_ANON_KEY
+            : "",
+          "Authorization": `Bearer ${access_token}`
+        }
+      }
+    );
+
+    if (!userResponse.ok) {
+      return res.status(401).json({
+        success: false,
+        error: "Unauthorized"
+      });
+    }
+
+    const authUser = await userResponse.json();
+
+    if (authUser.id !== user_id) {
+      return res.status(401).json({
+        success: false,
+        error: "User verification failed"
+      });
+    }
+
+    // Check Pro plan from Supabase
+    const usageResponse = await fetch(
+      `${process.env.SUPABASE_URL}/rest/v1/usage?user_id=eq.${encodeURIComponent(user_id)}&select=plan`,
+      {
+        headers: {
+          "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY,
+          "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
+        }
+      }
+    );
+
+    if (!usageResponse.ok) {
+      throw new Error("Unable to check user plan");
+    }
+
+    const usageData = await usageResponse.json();
+    const plan = usageData?.[0]?.plan || "free";
+
+    if (plan !== "pro") {
+      return res.status(403).json({
+        success: false,
+        error: "Improve Post is a Pro feature"
       });
     }
 
