@@ -1162,11 +1162,42 @@ async function upgradeToPro() {
       name: "PostMitra AI",
       description: "PostMitra AI Pro - ₹199/month",
       image: "",
-      handler: function (response) {
-        console.log("Payment successful:", response);
+     handler: async function (response) {
+  try {
+    const user = (await supabaseClient.auth.getUser()).data.user;
 
-        alert("✅ Payment successful! Your Pro plan will be activated after verification.");
+    if (!user) {
+      throw new Error("Please login before upgrading to Pro.");
+    }
+
+    const verifyResponse = await fetch("/api/verify-payment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
       },
+      body: JSON.stringify({
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_subscription_id: response.razorpay_subscription_id,
+        razorpay_signature: response.razorpay_signature,
+        user_id: user.id
+      })
+    });
+
+    const verifyData = await verifyResponse.json();
+
+    if (!verifyResponse.ok || !verifyData.success) {
+      throw new Error(
+        verifyData.error || "Payment verification failed"
+      );
+    }
+
+    alert("🎉 Payment verified successfully!");
+
+  } catch (error) {
+    console.error("PAYMENT VERIFICATION ERROR:", error);
+    alert("❌ Verification failed: " + error.message);
+  }
+},
       prefill: {
         name: "",
         email: ""
