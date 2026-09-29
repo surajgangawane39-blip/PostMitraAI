@@ -438,9 +438,84 @@ select:focus {
   </div>
 
 </section>
+<section style="
+  margin-top:50px;
+  background:white;
+  padding:30px;
+  border-radius:18px;
+  border:1px solid #e2e8f0;
+  box-shadow:0 10px 25px rgba(15,23,42,.06);
+  max-width:800px;
+  margin-left:auto;
+  margin-right:auto;
+">
 
+  <h2 style="text-align:center; margin-bottom:8px;">
+    💬 Help us improve PostMitra AI
+  </h2>
+
+  <p style="
+    text-align:center;
+    color:#64748b;
+    margin-bottom:25px;
+  ">
+    Tell us what you liked, what we can improve, or what feature you'd like next.
+  </p>
+
+  <label style="font-weight:600;">
+    Your rating
+  </label>
+
+  <select id="feedbackRating" style="
+    width:100%;
+    padding:12px;
+    margin-top:8px;
+    margin-bottom:18px;
+    border:1px solid #cbd5e1;
+    border-radius:10px;
+  ">
+    <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+    <option value="4">⭐⭐⭐⭐ Good</option>
+    <option value="3">⭐⭐⭐ Average</option>
+    <option value="2">⭐⭐ Needs improvement</option>
+    <option value="1">⭐ Poor</option>
+  </select>
+
+  <textarea
+    id="feedbackMessage"
+    placeholder="Tell us your feedback..."
+    style="
+      width:100%;
+      min-height:120px;
+      padding:12px;
+      border:1px solid #cbd5e1;
+      border-radius:10px;
+      resize:vertical;
+      box-sizing:border-box;
+    "
+  ></textarea>
+
+  <button
+    onclick="submitFeedback()"
+    class="primary-btn"
+    style="
+      width:100%;
+      margin-top:15px;
+    "
+  >
+    Submit Feedback
+  </button>
+
+  <p id="feedbackStatus" style="
+    text-align:center;
+    margin-top:15px;
+    font-size:14px;
+  "></p>
+
+</section>
+  
 </main>
-
+  
 <footer>
   PostMitra AI · Building the future of LinkedIn content
 </footer>
