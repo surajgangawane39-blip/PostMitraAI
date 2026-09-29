@@ -655,7 +655,53 @@ async function checkLoginState() {
 }
 
 checkLoginState();
+async function submitFeedback() {
+  const rating = Number(document.getElementById("feedbackRating").value);
+  const message = document.getElementById("feedbackMessage").value.trim();
+  const status = document.getElementById("feedbackStatus");
 
+  if (!message) {
+    status.textContent = "Please enter your feedback.";
+    return;
+  }
+
+  status.textContent = "Submitting feedback...";
+
+  try {
+    const {
+      data: { user },
+      error: userError
+    } = await supabaseClient.auth.getUser();
+
+    if (userError || !user) {
+      status.textContent = "Please login to submit feedback.";
+      return;
+    }
+
+    const { error } = await supabaseClient
+      .from("feedback")
+      .insert([
+        {
+          user_id: user.id,
+          rating: rating,
+          message: message
+        }
+      ]);
+
+    if (error) {
+      throw error;
+    }
+
+    status.textContent = "✅ Thank you for your feedback!";
+
+    document.getElementById("feedbackMessage").value = "";
+
+  } catch (error) {
+    console.error("FEEDBACK ERROR:", error);
+    status.textContent = "❌ Could not submit feedback.";
+  }
+}
+  
 async function generatePost() {
 
   const topic = document.getElementById("topic").value.trim();
