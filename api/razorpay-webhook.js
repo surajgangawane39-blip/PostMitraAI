@@ -64,6 +64,32 @@ async function updateUsage(userId, plan, generations) {
     throw new Error("Supabase update failed: " + errorText);
   }
 }
+async function saveReferral(referralCode, userId) {
+  if (!referralCode) return;
+
+  const response = await fetch(
+    `${process.env.SUPABASE_URL}/rest/v1/referrals`,
+    {
+      method: "POST",
+      headers: {
+        "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify({
+        referral_code: referralCode,
+        user_id: userId,
+        status: "paid"
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error("Referral save failed: " + errorText);
+  }
+}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
