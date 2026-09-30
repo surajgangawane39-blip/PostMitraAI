@@ -161,10 +161,14 @@ export default async function handler(req, res) {
     }
 
     if (
-      event.event === "subscription.charged"
-    ) {
-      await updateUsage(userId, "pro", 0);
-    }
+  event.event === "subscription.charged"
+) {
+  await updateUsage(userId, "pro", 0);
+
+  if (referralCode) {
+    await saveReferral(referralCode, userId);
+  }
+}
 
     if (
       event.event === "subscription.cancelled" ||
