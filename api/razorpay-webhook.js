@@ -129,7 +129,13 @@ export default async function handler(req, res) {
 
     const event = JSON.parse(rawBody);
 
-    console.log("RAZORPAY WEBHOOK EVENT:", event.event);
+const paymentAmount =
+  event.payload?.payment?.entity?.amount || 0;
+
+const paymentAmountRupees =
+  paymentAmount / 100;
+
+console.log("RAZORPAY WEBHOOK EVENT:", event.event);
 
     let subscription = null;
 
