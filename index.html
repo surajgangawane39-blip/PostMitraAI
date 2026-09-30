@@ -1501,5 +1501,16 @@ const response = await fetch("/api/create-subscription", {
     </a>
   </div>
 </footer>
+<script>
+(function () {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+
+    if (ref) {
+        localStorage.setItem("postmitra_ref", ref);
+    }
+})();
+</script>
+  
 </body>
 </html>
