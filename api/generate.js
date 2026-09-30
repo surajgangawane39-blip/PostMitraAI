@@ -158,15 +158,53 @@ Requirements:
 - Add 3-5 relevant hashtags.
 - Make each post substantially different.
 - After all 5 posts, add SCORES.
-- Score each post out of 100:
-  Hook: 0-20
-  Value: 0-20
-  Readability: 0-20
-  Engagement: 0-20
-  CTA: 0-20
-- Total must equal the five category scores.
-- Identify BEST POST: POST X
+- Score each post using EXACTLY this format:
 
+SCORES
+
+POST 1: 85/100
+HOOK: 17/20
+VALUE: 18/20
+READABILITY: 16/20
+ENGAGEMENT: 17/20
+CTA: 17/20
+
+POST 2: 82/100
+HOOK: 16/20
+VALUE: 17/20
+READABILITY: 17/20
+ENGAGEMENT: 16/20
+CTA: 16/20
+
+POST 3: 88/100
+HOOK: 18/20
+VALUE: 18/20
+READABILITY: 17/20
+ENGAGEMENT: 18/20
+CTA: 17/20
+
+POST 4: 80/100
+HOOK: 16/20
+VALUE: 16/20
+READABILITY: 16/20
+ENGAGEMENT: 16/20
+CTA: 16/20
+
+POST 5: 84/100
+HOOK: 17/20
+VALUE: 17/20
+READABILITY: 17/20
+ENGAGEMENT: 17/20
+CTA: 16/20
+
+BEST POST: POST 3
+
+IMPORTANT:
+- Use exactly the labels HOOK, VALUE, READABILITY, ENGAGEMENT, CTA.
+- Use exactly the format NUMBER/20 for every category.
+- Total score must equal the sum of the five category scores.
+- Do not use Markdown tables for scores.
+- Do not add any extra text between SCORES and BEST POST.
 Topic: ${topic}
 Language: ${language}
 Tone: ${tone}
