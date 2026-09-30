@@ -1353,7 +1353,8 @@ const response = await fetch("/api/create-subscription", {
     "Content-Type": "application/json"
   },
   body: JSON.stringify({
-    user_id: user.id
+    user_id: user.id,
+    referral_code: localStorage.getItem("postmitra_ref") || ""
   })
 });
 
