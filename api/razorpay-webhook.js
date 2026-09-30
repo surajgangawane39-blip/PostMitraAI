@@ -171,7 +171,24 @@ console.log("RAZORPAY WEBHOOK EVENT:", event.event);
 ) {
   await updateUsage(userId, "pro", 0);
 
-  if (referralCode) {
+if (referralCode) {
+  const existingReferralResponse = await fetch(
+    `${process.env.SUPABASE_URL}/rest/v1/referrals?user_id=eq.${encodeURIComponent(userId)}&select=id&limit=1`,
+    {
+      headers: {
+        "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
+      }
+    }
+  );
+
+  if (!existingReferralResponse.ok) {
+    throw new Error("Unable to check existing referral");
+  }
+
+  const existingReferrals = await existingReferralResponse.json();
+
+  if (existingReferrals.length === 0) {
     const commissionPercent = 30;
     const commissionAmount =
       (paymentAmountRupees * commissionPercent) / 100;
@@ -192,7 +209,8 @@ console.log("RAZORPAY WEBHOOK EVENT:", event.event);
           status: "paid",
           payment_amount: paymentAmountRupees,
           commission_percent: commissionPercent,
-          commission_amount: commissionAmount
+          commission_amount: commissionAmount,
+          first_payment: true
         })
       }
     );
