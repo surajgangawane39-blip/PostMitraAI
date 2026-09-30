@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { user_id } = req.body;
+    const { user_id, referral_code } = req.body;
 
     if (!user_id) {
       return res.status(400).json({
@@ -35,7 +35,9 @@ export default async function handler(req, res) {
           total_count: 12,
           customer_notify: 1,
           notes: {
-            postmitra_user_id: user_id
+  postmitra_user_id: user_id,
+  referral_code: referral_code || ""
+}
           }
         })
       }
