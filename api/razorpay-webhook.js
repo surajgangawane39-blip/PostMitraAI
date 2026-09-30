@@ -149,6 +149,8 @@ export default async function handler(req, res) {
 
     const userId =
       subscription?.notes?.postmitra_user_id;
+    const referralCode =
+  subscription?.notes?.referral_code;
 
     if (!userId) {
       console.error("PostMitra user ID not found");
