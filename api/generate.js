@@ -55,7 +55,7 @@ export default async function handler(req, res) {
     const usageResponse = await fetch(
       `${process.env.SUPABASE_URL}/rest/v1/usage?user_id=eq.${encodeURIComponent(
         user_id
-      )}&select=generation,plan,period_start`,
+      )}&select=generations,plan,period_start`,
       {
         headers: {
           "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -64,17 +64,15 @@ export default async function handler(req, res) {
       }
     );
 
-   if (!usageResponse.ok) {
-  const usageError = await usageResponse.text();
-  console.error("USAGE ERROR:", usageError);
+    if (!usageResponse.ok) {
+      const usageError = await usageResponse.text();
+      console.error("USAGE ERROR:", usageError);
 
-  throw new Error(
-    `Unable to check usage: ${usageError}`
-  );
-}
+      throw new Error(`Unable to check usage: ${usageError}`);
+    }
 
-const usageData = await usageResponse.json();
-let usage = usageData?.[0];
+    const usageData = await usageResponse.json();
+    let usage = usageData?.[0];
 
     // Create usage record automatically for a new user
     if (!usage) {
@@ -92,7 +90,7 @@ let usage = usageData?.[0];
           },
           body: JSON.stringify({
             user_id: user_id,
-            generation: 0,
+            generations: 0,
             plan: "free",
             period_start: now,
             updated_at: now
@@ -116,7 +114,7 @@ let usage = usageData?.[0];
     }
 
     const plan = usage.plan || "free";
-    let generationCount = usage.generation || 0;
+    let generationCount = usage.generations || 0;
 
     const generationLimit = plan === "pro" ? 50 : 5;
 
@@ -147,7 +145,7 @@ let usage = usageData?.[0];
             "Prefer": "return=minimal"
           },
           body: JSON.stringify({
-            generation: 0,
+            generations: 0,
             period_start: now.toISOString(),
             updated_at: now.toISOString()
           })
@@ -155,7 +153,10 @@ let usage = usageData?.[0];
       );
 
       if (!resetResponse.ok) {
-        throw new Error("Unable to reset monthly usage");
+        const resetError = await resetResponse.text();
+        throw new Error(
+          `Unable to reset monthly usage: ${resetError}`
+        );
       }
     }
 
@@ -246,6 +247,7 @@ IMPORTANT:
 - Total score must equal the sum of the five category scores.
 - Do not use Markdown tables for scores.
 - Do not add any extra text between SCORES and BEST POST.
+
 Topic: ${topic}
 Language: ${language}
 Tone: ${tone}
@@ -311,14 +313,17 @@ Do not add explanations outside the posts and scores.`;
           "Prefer": "return=minimal"
         },
         body: JSON.stringify({
-          generation: newCount,
+          generations: newCount,
           updated_at: new Date().toISOString()
         })
       }
     );
 
     if (!updateResponse.ok) {
-      throw new Error("Unable to update usage");
+      const updateError = await updateResponse.text();
+      throw new Error(
+        `Unable to update usage: ${updateError}`
+      );
     }
 
     return res.status(200).json({
