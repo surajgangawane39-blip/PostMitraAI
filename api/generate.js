@@ -64,12 +64,17 @@ export default async function handler(req, res) {
       }
     );
 
-    if (!usageResponse.ok) {
-      throw new Error("Unable to check usage");
-    }
+   if (!usageResponse.ok) {
+  const usageError = await usageResponse.text();
+  console.error("USAGE ERROR:", usageError);
 
-    const usageData = await usageResponse.json();
-    let usage = usageData?.[0];
+  throw new Error(
+    `Unable to check usage: ${usageError}`
+  );
+}
+
+const usageData = await usageResponse.json();
+let usage = usageData?.[0];
 
     // Create usage record automatically for a new user
     if (!usage) {
