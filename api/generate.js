@@ -53,7 +53,9 @@ export default async function handler(req, res) {
 
     // Get usage + plan
     const usageResponse = await fetch(
-      `${process.env.SUPABASE_URL}/rest/v1/usage?user_id=eq.${encodeURIComponent(user_id)}&select=generations,plan,period_start`,
+      `${process.env.SUPABASE_URL}/rest/v1/usage?user_id=eq.${encodeURIComponent(
+        user_id
+      )}&select=generation,plan,period_start`,
       {
         headers: {
           "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -67,13 +69,45 @@ export default async function handler(req, res) {
     }
 
     const usageData = await usageResponse.json();
-    const usage = usageData?.[0];
+    let usage = usageData?.[0];
 
+    // Create usage record automatically for a new user
     if (!usage) {
-      return res.status(403).json({
-        success: false,
-        error: "Usage record not found"
-      });
+      const now = new Date().toISOString();
+
+      const createUsageResponse = await fetch(
+        `${process.env.SUPABASE_URL}/rest/v1/usage`,
+        {
+          method: "POST",
+          headers: {
+            "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY,
+            "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+            "Content-Type": "application/json",
+            "Prefer": "return=representation"
+          },
+          body: JSON.stringify({
+            user_id: user_id,
+            generation: 0,
+            plan: "free",
+            period_start: now,
+            updated_at: now
+          })
+        }
+      );
+
+      if (!createUsageResponse.ok) {
+        const createError = await createUsageResponse.text();
+        throw new Error(
+          `Unable to create usage record: ${createError}`
+        );
+      }
+
+      const createdUsageData = await createUsageResponse.json();
+      usage = createdUsageData?.[0];
+
+      if (!usage) {
+        throw new Error("Usage record was not created");
+      }
     }
 
     const plan = usage.plan || "free";
@@ -96,7 +130,9 @@ export default async function handler(req, res) {
       generationCount = 0;
 
       const resetResponse = await fetch(
-        `${process.env.SUPABASE_URL}/rest/v1/usage?user_id=eq.${encodeURIComponent(user_id)}`,
+        `${process.env.SUPABASE_URL}/rest/v1/usage?user_id=eq.${encodeURIComponent(
+          user_id
+        )}`,
         {
           method: "PATCH",
           headers: {
@@ -106,7 +142,7 @@ export default async function handler(req, res) {
             "Prefer": "return=minimal"
           },
           body: JSON.stringify({
-            generations: 0,
+            generation: 0,
             period_start: now.toISOString(),
             updated_at: now.toISOString()
           })
@@ -241,8 +277,8 @@ Do not add explanations outside the posts and scores.`;
     if (!response.ok) {
       throw new Error(
         data.error?.message ||
-        data.error ||
-        "OpenRouter request failed"
+          data.error ||
+          "OpenRouter request failed"
       );
     }
 
@@ -254,11 +290,13 @@ Do not add explanations outside the posts and scores.`;
       throw new Error("No post returned from AI");
     }
 
-    // Count this generation
+    // Count this generation only after successful AI response
     const newCount = generationCount + 1;
 
     const updateResponse = await fetch(
-      `${process.env.SUPABASE_URL}/rest/v1/usage?user_id=eq.${encodeURIComponent(user_id)}`,
+      `${process.env.SUPABASE_URL}/rest/v1/usage?user_id=eq.${encodeURIComponent(
+        user_id
+      )}`,
       {
         method: "PATCH",
         headers: {
@@ -268,7 +306,7 @@ Do not add explanations outside the posts and scores.`;
           "Prefer": "return=minimal"
         },
         body: JSON.stringify({
-          generations: newCount,
+          generation: newCount,
           updated_at: new Date().toISOString()
         })
       }
