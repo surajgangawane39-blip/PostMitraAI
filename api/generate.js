@@ -77,7 +77,7 @@ export default async function handler(req, res) {
     }
 
     const plan = usage.plan || "free";
-    let generationCount = usage.generations || 0;
+    let generationCount = usage.generation || 0;
 
     const generationLimit = plan === "pro" ? 50 : 5;
 
