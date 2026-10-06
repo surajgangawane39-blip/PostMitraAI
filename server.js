@@ -63,32 +63,116 @@ async function callAI(prompt) {
 
 
 // ======================================================
+// MARATHI NATURAL WORD CORRECTIONS
+// ======================================================
+
+function cleanMarathi(text) {
+  if (!text) return text;
+
+  const replacements = {
+    "अवसर": "संधी",
+    "अवसरे": "संधी",
+    "अवसर मिळतात": "संधी मिळतात",
+    "अवसर मिळतो": "संधी मिळते",
+
+    "व्यक्तिशी": "व्यक्तीशी",
+    "व्यक्ती सोबत": "व्यक्तीसोबत",
+
+    "संपर्ठ": "संपर्क",
+    "संपर्ठ साधा": "संपर्क साधा",
+
+    "दृष्टीकोण": "दृष्टीकोन",
+
+    "कौशल्यांचे दर्शन करणे": "तुमची कौशल्यं दाखवणे",
+    "कौशल्यांचे दर्शन": "कौशल्यं दाखवणे",
+
+    "उमेदवारीचा आकर्षक": "उमेदवारी अधिक चांगली",
+    "प्रोफाईलचा आकर्षक दर्शवा": "तुमचा profile नीट दाखवा",
+
+    "अनुस्मरण करा": "पुन्हा संपर्क करा",
+    "अनुस्मरण": "पुन्हा संपर्क",
+
+    "अगोदर्शक": "मार्गदर्शक",
+
+    "अनन्यसाधारण महत्त्व": "खूप महत्त्व",
+
+    "प्रभावी संवादाचे महत्त्व": "चांगल्या संवादाचं महत्त्व",
+
+    "तात्पुरते संपर्क": "वेळोवेळी संपर्क",
+
+    "संधीच्या वेळी संपर्क साधणे": "योग्य वेळी संपर्क करणे",
+
+    "आपल्या कौशल्यांची यादी जोडू शकता": "तुमची skills add करू शकता",
+
+    "आपल्या प्रोफाईलचे आकर्षक": "तुमचा profile चांगला",
+
+    "नोकरी शोधण्याचे सर्वात महत्त्वाचे साधन": "नोकरी शोधताना उपयोगी गोष्ट",
+
+    "आपल्या उमेदवारीचा आकर्षक दर्शवा":
+      "तुमची profile आणि skills नीट दाखवा",
+
+    "तुमच्या कौशल्यांचे दर्शन":
+      "तुमची skills दाखवणे",
+
+    "नवीन अवसर तयार करा":
+      "नवीन संधी तयार करा",
+
+    "नवीन अवसर मिळवा":
+      "नवीन संधी मिळवा",
+
+    "एका व्यक्तिशी":
+      "एका व्यक्तीशी",
+
+    "इतरांच्या अगोदर जाण्याची संधी":
+      "इतरांपेक्षा पुढे जाण्याची संधी",
+
+    "संपर्क राखणे":
+      "संपर्कात राहणे"
+  };
+
+  let result = text;
+
+  for (const [bad, good] of Object.entries(replacements)) {
+    result = result.split(bad).join(good);
+  }
+
+  return result;
+}
+
+
+// ======================================================
 // MARATHI HUMANIZER
 // ======================================================
 
 async function humanizeMarathi(post) {
   const prompt = `
-You are a professional Marathi LinkedIn editor.
+You are PostMitra AI's Marathi Humanizer.
 
-Your ONLY job is to rewrite the post below into NATURAL, EVERYDAY MARATHI.
+Your job is to rewrite the LinkedIn post below so it sounds like a REAL MARATHI PERSON wrote it.
 
-Do NOT change the meaning.
+Keep the original meaning.
 
-Do NOT add new facts.
+Do NOT add facts.
 
-Do NOT make it more formal.
+Do NOT invent stories.
 
-Do NOT make it sound like an essay.
+Do NOT make it formal.
 
-The final result must sound like a real Marathi-speaking person wrote it on LinkedIn.
+Do NOT make it sound like a textbook.
 
-IMPORTANT:
+Do NOT translate English sentences word-for-word.
 
-Use simple Marathi that people in Maharashtra naturally use.
+The final post should sound natural, simple and conversational.
 
-Marathi-English mixing is allowed and preferred when an English word is commonly used.
+==================================================
+MARATHI STYLE
+==================================================
 
-Natural words are okay:
+Write in everyday Marathi used by people in Maharashtra.
+
+Marathi-English mixing is allowed when it sounds natural.
+
+Words such as these are completely normal:
 
 LinkedIn
 profile
@@ -100,163 +184,112 @@ skills
 interview
 experience
 headline
-update
 content
+update
 job search
-opportunity
 
-Do NOT translate these unnecessarily.
+Do NOT translate these words unnecessarily.
 
---------------------------------------------------
-VERY IMPORTANT: REMOVE TRANSLATION-LIKE MARATHI
---------------------------------------------------
+==================================================
+WORDS TO AVOID
+==================================================
 
-NEVER use awkward phrases such as:
+Never use awkward translated words such as:
 
-"कौशल्यांचे दर्शन करणे"
+अवसर
 
-"नवीन अवसर तयार करणे"
+कौशल्यांचे दर्शन करणे
 
-"अवसर"
+कौशल्यांचे दर्शन
 
-"अनुस्मरण करणे"
+अनुस्मरण
 
-"संपर्ठ"
+अगोदर्शक
 
-"अगोदर्शक"
+संपर्ठ
 
-"दृष्टीकोण" when "दृष्टीकोन" or a simpler phrase works
+उमेदवारीचा आकर्षक
 
-"उमेदवारीचा आकर्षक"
+प्रोफाईलचा आकर्षक दर्शवा
 
-"प्रोफाईलचा आकर्षक दर्शवा"
+अनन्यसाधारण महत्त्व
 
-"अनन्यसाधारण महत्त्व"
+प्रभावी संवादाचे महत्त्व
 
-"प्रभावी संवादाचे महत्त्व"
+तात्पुरते संपर्क
 
-"संधीच्या वेळी संपर्क साधणे"
+दृष्टीकोण
 
-"आपल्या उमेदवारीचा आकर्षक"
+==================================================
+NATURAL ALTERNATIVES
+==================================================
 
-"महत्त्वाचे साधन"
+अवसर → संधी
 
-when it sounds unnecessarily formal.
+कौशल्यांचे दर्शन करणे → तुमची skills दाखवणे
 
-If a sentence sounds translated from English, rewrite the entire sentence naturally.
+अनुस्मरण करणे → पुन्हा संपर्क करणे
 
---------------------------------------------------
-EXAMPLES
---------------------------------------------------
+अगोदर्शक → मार्गदर्शक
 
-BAD:
+संपर्ठ → संपर्क
 
-"नेटवर्किंग हे नोकरी शोधण्याचे सर्वात महत्त्वाचे साधन आहे."
+दृष्टीकोण → दृष्टीकोन
 
-NATURAL:
-
-"नोकरी शोधताना फक्त job portals वर depend राहून चालत नाही. योग्य लोकांशी ओळख असणंही तितकंच महत्त्वाचं आहे."
-
-BAD:
-
-"आपल्या कौशल्यांचे दर्शन करणे."
-
-NATURAL:
-
-"तुम्ही काय काम केलंय आणि काय करू शकता, हे लोकांना कळणं."
-
-BAD:
-
-"नवीन अवसर तयार करा."
-
-NATURAL:
-
-"नवीन संधी मिळू शकतात."
-
-BAD:
-
-"आपल्या प्रोफाईलचा आकर्षक दर्शवा."
-
-NATURAL:
-
-"तुमचा LinkedIn profile नीट update करा."
-
-Do NOT copy these examples unless they naturally fit the original post.
-
---------------------------------------------------
-STYLE
---------------------------------------------------
+==================================================
+WRITING STYLE
+==================================================
 
 Write like:
 
-a Marathi LinkedIn creator
-a young professional
-a normal educated Marathi speaker
+- a young Marathi professional
+- a Marathi LinkedIn creator
+- a normal educated Marathi speaker
 
-NOT like:
+Do NOT write like:
 
-a textbook
-a government notice
-a translated article
-an AI
-a motivational speaker
+- a textbook
+- a government notice
+- a translated English article
+- an AI-generated essay
 
-Use:
+Use simple sentences.
 
-"आपल्याला"
-"आपण"
-"तुम्ही"
-"तुमचं"
-"आपलं"
-"खरं सांगायचं तर"
-"अनेकदा"
-"कधी कधी"
-"लक्षात येतं"
-"कामी येतं"
-"उपयोगी पडतं"
-"करून बघा"
+Keep paragraphs short.
 
-when naturally appropriate.
+Do not repeat the same sentence structure.
 
-Do not overuse them.
+Do not overuse "आपण", "आपल्या" or "तुम्ही".
 
---------------------------------------------------
-SENTENCE STYLE
---------------------------------------------------
+Use natural expressions when appropriate:
 
-Keep sentences short.
+खरं सांगायचं तर
 
-Use natural sentence variation.
+अनेकदा
 
-Do not make every sentence start with:
+कधी कधी
 
-"आपण"
-"आपल्या"
-"तुम्ही"
+लक्षात येतं
 
-Avoid repetitive structure.
+उपयोगी पडतं
 
---------------------------------------------------
-LINKEDIN STYLE
---------------------------------------------------
+करून बघा
 
-Keep short paragraphs.
+पण त्यांचा अतिरेक करू नका.
 
-Keep the original hook if it is good.
+==================================================
+VERY IMPORTANT
+==================================================
 
-If the hook sounds translated, rewrite it naturally.
+Before returning the post, read every sentence mentally.
 
-Keep the useful information.
+Ask:
 
-Keep hashtags.
+"एखादा Marathi creator ही line खरंच LinkedIn वर अशी लिहील का?"
 
-Maximum 5 hashtags.
+If the answer is NO, rewrite that sentence in simpler Marathi.
 
-Do not add headings.
-
-Do not add explanations.
-
-Return ONLY the final rewritten LinkedIn post.
+Return ONLY the final post.
 
 ORIGINAL POST:
 
@@ -286,16 +319,24 @@ app.post("/api/generate", async (req, res) => {
     }
 
     const isMarathi =
-      String(language || "").toLowerCase().includes("marathi");
+      String(language || "")
+        .toLowerCase()
+        .includes("marathi");
 
     const isHindi =
-      String(language || "").toLowerCase().includes("hindi");
+      String(language || "")
+        .toLowerCase()
+        .includes("hindi");
 
     let languageRules = "";
 
+    // ==================================================
+    // MARATHI
+    // ==================================================
+
     if (isMarathi) {
       languageRules = `
-MARATHI:
+MARATHI MODE
 
 Write in natural everyday Marathi.
 
@@ -303,21 +344,35 @@ Marathi-English mixing is allowed.
 
 Do not translate English words unnecessarily.
 
-Use words people actually use on LinkedIn.
+Use simple words.
 
 Avoid Sanskrit-heavy vocabulary.
 
 Avoid textbook Marathi.
 
-Avoid formal government-style Marathi.
+Avoid government-style Marathi.
 
-The post must sound like a young Marathi professional wrote it.
+The post should sound like a real Marathi LinkedIn creator.
+
+Never use:
+अवसर
+अनुस्मरण
+अगोदर्शक
+संपर्ठ
+कौशल्यांचे दर्शन
+उमेदवारीचा आकर्षक
+अनन्यसाधारण
+प्रभावी संवादाचे महत्त्व
 `;
     }
 
+    // ==================================================
+    // HINDI
+    // ==================================================
+
     else if (isHindi) {
       languageRules = `
-HINDI:
+HINDI MODE
 
 Use natural conversational Indian Hindi.
 
@@ -325,15 +380,19 @@ Hindi-English mixing is allowed.
 
 Avoid textbook Hindi.
 
-Avoid unnecessarily formal words.
+Avoid unnecessarily formal Hindi.
 
 Write like a real Indian LinkedIn creator.
 `;
     }
 
+    // ==================================================
+    // ENGLISH
+    // ==================================================
+
     else {
       languageRules = `
-ENGLISH:
+ENGLISH MODE
 
 Use natural conversational professional English.
 
@@ -371,31 +430,41 @@ ${audience || "general LinkedIn audience"}
 ${languageRules}
 
 ==================================================
-HUMAN WRITING
+HUMAN WRITING RULES
 ==================================================
 
-Do NOT sound like AI.
+1. Write like a real person.
 
-Do NOT sound like a textbook.
+2. Keep the language simple.
 
-Do NOT sound like a corporate announcement.
+3. Avoid robotic writing.
 
-Do NOT use generic motivational language.
+4. Avoid textbook language.
 
-Do NOT invent personal experiences.
+5. Avoid corporate buzzwords.
 
-Do NOT invent statistics.
+6. Avoid generic motivational phrases.
 
-Do NOT repeat the same idea.
+7. Do not invent personal experiences.
 
-Use short paragraphs.
+8. Do not invent statistics.
 
-Use natural sentence lengths.
+9. Do not repeat the same idea.
 
-Make the post useful and relatable.
+10. Use short paragraphs.
+
+11. Vary sentence lengths.
+
+12. Make the post useful.
+
+13. Make the post relatable.
+
+14. Do not force a CTA.
+
+15. Use 3-5 relevant hashtags.
 
 ==================================================
-AVOID THESE OPENINGS
+AVOID THESE AI OPENINGS
 ==================================================
 
 "In today's digital world..."
@@ -419,23 +488,23 @@ AVOID THESE OPENINGS
 "In conclusion..."
 
 ==================================================
-CTA
+LINKEDIN STYLE
 ==================================================
 
-Use a natural CTA only when appropriate.
+The hook should feel natural.
 
-Do not automatically write:
+The body should give genuine value.
 
-"Share your thoughts in the comments below."
+Use short paragraphs.
+
+Do not make the post look like an essay.
+
+Do not use unnecessary headings.
+
+The CTA should feel natural.
 
 ==================================================
-HASHTAGS
-==================================================
-
-Use 3-5 relevant hashtags.
-
-==================================================
-CREATE 5 POSTS
+CREATE 5 DIFFERENT POSTS
 ==================================================
 
 POST 1:
@@ -445,7 +514,7 @@ POST 2:
 Practical advice
 
 POST 3:
-Story / situation
+Story or situation
 
 POST 4:
 Opinion
@@ -453,10 +522,10 @@ Opinion
 POST 5:
 Simple lesson
 
-Make them genuinely different.
+Make each post genuinely different.
 
 ==================================================
-OUTPUT
+OUTPUT FORMAT
 ==================================================
 
 Return EXACTLY:
@@ -525,23 +594,35 @@ CTA: XX/20
 
 BEST POST: POST X
 
-Do not add anything before or after this format.
+Do not add any explanation before or after this format.
 `;
 
-    // First AI generation
+    // ==================================================
+    // FIRST GENERATION
+    // ==================================================
+
     let generatedPost = await callAI(prompt);
 
+
     // ==================================================
-    // MARATHI ONLY: SECOND HUMANIZATION PASS
+    // MARATHI HUMANIZATION
     // ==================================================
 
     if (isMarathi) {
       console.log("MARATHI HUMANIZATION STARTED...");
 
-      generatedPost = await humanizeMarathi(generatedPost);
+      generatedPost =
+        await humanizeMarathi(generatedPost);
 
-      console.log("MARATHI HUMANIZATION COMPLETED.");
+      // Final automatic word correction
+      generatedPost =
+        cleanMarathi(generatedPost);
+
+      console.log(
+        "MARATHI HUMANIZATION COMPLETED."
+      );
     }
+
 
     res.json({
       success: true,
@@ -574,18 +655,20 @@ app.post("/api/improve", async (req, res) => {
     const prompt = `
 You are PostMitra AI's Humanize engine.
 
-Rewrite this LinkedIn post so it sounds like a REAL PERSON wrote it.
+Rewrite this LinkedIn post so it sounds like a real person wrote it.
 
 Keep the original meaning.
 
 Do not add facts.
 
+Do not invent experiences.
+
 Do not make it more formal.
 
 Remove:
 
-- AI-like wording
-- robotic phrases
+- robotic language
+- AI-like phrases
 - corporate buzzwords
 - textbook language
 - repetitive sentences
@@ -594,54 +677,42 @@ Remove:
 
 If the post is Marathi:
 
-Use natural everyday Marathi.
+Use everyday Marathi.
 
 Marathi-English mixing is allowed.
 
 Do not translate English words unnecessarily.
 
-Avoid phrases such as:
+Avoid these words:
 
-"कौशल्यांचे दर्शन करणे"
+अवसर
+अनुस्मरण
+अगोदर्शक
+संपर्ठ
+कौशल्यांचे दर्शन
+उमेदवारीचा आकर्षक
+अनन्यसाधारण
+प्रभावी संवादाचे महत्त्व
+दृष्टीकोण
 
-"नवीन अवसर"
+Prefer:
 
-"अनुस्मरण करणे"
+संधी
+पुन्हा संपर्क
+मार्गदर्शक
+संपर्क
+skills दाखवणे
+profile नीट दाखवणे
+खूप महत्त्व
+दृष्टीकोन
 
-"संपर्ठ"
+Write like a Marathi LinkedIn creator.
 
-"अगोदर्शक"
+Keep paragraphs short.
 
-"उमेदवारीचा आकर्षक"
+Keep useful information.
 
-"प्रोफाईलचा आकर्षक दर्शवा"
-
-"अनन्यसाधारण महत्त्व"
-
-"प्रभावी संवादाचे महत्त्व"
-
-If a sentence sounds translated, rewrite it naturally.
-
-Use common words such as:
-
-profile
-resume
-job
-career
-networking
-skills
-interview
-experience
-LinkedIn
-headline
-
-when appropriate.
-
-The final post should sound like a Marathi creator wrote it naturally.
-
-Keep hashtags.
-
-Maximum 5 hashtags.
+Keep 3-5 hashtags maximum.
 
 Return ONLY the improved post.
 
@@ -650,7 +721,11 @@ ORIGINAL POST:
 ${post}
 `;
 
-    const improvedPost = await callAI(prompt);
+    let improvedPost =
+      await callAI(prompt);
+
+    improvedPost =
+      cleanMarathi(improvedPost);
 
     res.json({
       success: true,
