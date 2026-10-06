@@ -243,38 +243,34 @@
     }
 
     /* ==========================================
-       OLD STYLE SCORE DISPLAY - NO COLUMNS
+       OLD STYLE SCORE DISPLAY
        ========================================== */
 
     .score-breakdown {
       margin: 14px 0 16px;
-      padding: 12px 10px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: nowrap;
-    }
-
-    .score-breakdown div {
+      padding: 0;
       background: transparent;
       border: none;
       border-radius: 0;
-      padding: 4px 5px;
-      text-align: center;
-      flex: 1;
-      min-width: 0;
+      display: block;
+    }
+
+    .score-breakdown div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      text-align: left;
     }
 
     .score-breakdown span {
-      display: inline;
-      font-size: 13px;
+      display: inline-block;
+      font-size: 14px;
       color: #64748b;
-      margin-right: 4px;
+      margin: 0;
     }
 
     .score-breakdown strong {
@@ -305,21 +301,20 @@
     @media (max-width: 600px) {
 
       .score-breakdown {
-        gap: 4px;
-        padding: 10px 4px;
+        display: block;
+        padding: 0;
       }
 
       .score-breakdown div {
-        padding: 4px 2px;
+        padding: 7px 0;
       }
 
       .score-breakdown span {
-        font-size: 11px;
-        margin-right: 2px;
+        font-size: 14px;
       }
 
       .score-breakdown strong {
-        font-size: 12px;
+        font-size: 14px;
       }
 
       header {
