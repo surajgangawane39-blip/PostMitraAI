@@ -28,7 +28,7 @@ async function callAI(prompt) {
         "X-Title": "PostMitra AI"
       },
       body: JSON.stringify({
-        model: "dots-studio/dots-3-note-preview:free",
+        model: "google/gemma-4-31b-it:free",
         messages: [
           {
             role: "user",
