@@ -1,4 +1,5 @@
 require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 
@@ -11,18 +12,13 @@ app.get("/", (req, res) => {
   res.send("PostMitra AI backend is running!");
 });
 
-
-// ======================================================
-// AI HELPER
-// ======================================================
-
 async function callAI(prompt) {
   const response = await fetch(
     "https://openrouter.ai/api/v1/chat/completions",
     {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
         "HTTP-Referer": "http://localhost:3000",
         "X-Title": "PostMitra AI"
@@ -34,7 +30,8 @@ async function callAI(prompt) {
             role: "user",
             content: prompt
           }
-        ]
+        ],
+        temperature: 0.8
       })
     }
   );
@@ -58,81 +55,97 @@ async function callAI(prompt) {
     throw new Error("No content returned from AI");
   }
 
-  return content;
+  return content.trim();
 }
 
 
-// ======================================================
-// MARATHI NATURAL WORD CORRECTIONS
-// ======================================================
+/* =====================================================
+   MARATHI CLEANUP
+===================================================== */
 
 function cleanMarathi(text) {
   if (!text) return text;
 
-  const replacements = {
-    "अवसर": "संधी",
-    "अवसरे": "संधी",
-    "अवसर मिळतात": "संधी मिळतात",
-    "अवसर मिळतो": "संधी मिळते",
+  const replacements = [
+    ["अविभाज्य भाग", "महत्त्वाचा भाग"],
+    ["अविभाज्य", "महत्त्वाचा"],
+    ["अधिकृत नोकरीच्या संधी", "नोकरीच्या संधी"],
+    ["अधिकृत संधी", "नोकरीच्या संधी"],
+    ["नोकरीच्या अधिकृत संधी", "नोकरीच्या संधी"],
 
-    "व्यक्तिशी": "व्यक्तीशी",
-    "व्यक्ती सोबत": "व्यक्तीसोबत",
+    ["नोकरीचा आमंत्रण", "नोकरीची संधी"],
+    ["नोकरीचे आमंत्रण", "नोकरीची संधी"],
+    ["नोकरीच्या आमंत्रण", "नोकरीची संधी"],
+    ["आमंत्रण मिळू शकतो", "संधी मिळू शकते"],
 
-    "संपर्ठ": "संपर्क",
-    "संपर्ठ साधा": "संपर्क साधा",
+    ["उद्योजकतेचा आणि विश्वासाचा वापर", "आपलं काम आणि अनुभव नीट सांगणं"],
 
-    "दृष्टीकोण": "दृष्टीकोन",
+    ["नेटवर्किंग स्ट्रॅटेजी", "networking plan"],
+    ["नेटवर्किंग आपल्याला", "Networking मुळे"],
+    ["नेटवर्किंग म्हणजे", "Networking म्हणजे"],
 
-    "कौशल्यांचे दर्शन करणे": "तुमची कौशल्यं दाखवणे",
-    "कौशल्यांचे दर्शन": "कौशल्यं दाखवणे",
+    ["तुमच्या संपर्कांचं महत्त्व", "तुमच्या contacts चं महत्त्व"],
+    ["संपर्कांचं महत्त्व", "contacts चं महत्त्व"],
+    ["संपर्कांच्या माध्यमातून", "contacts मधून"],
+    ["संपर्कांच्या माध्यमातून तुम्ही", "contacts मधून तुम्ही"],
 
-    "उमेदवारीचा आकर्षक": "उमेदवारी अधिक चांगली",
-    "प्रोफाईलचा आकर्षक दर्शवा": "तुमचा profile नीट दाखवा",
+    ["संधी शोधण्यास मदत करते", "संधी शोधायला मदत करते"],
+    ["संधी शोधण्यास मदत करते", "संधी शोधायला मदत करते"],
+    ["संधी शोधू शकता", "संधी शोधायला मदत होऊ शकते"],
 
-    "अनुस्मरण करा": "पुन्हा संपर्क करा",
-    "अनुस्मरण": "पुन्हा संपर्क",
+    ["संधी दाखवू शकते", "नवीन opportunities मिळवून देऊ शकते"],
+    ["बाहेर असलेल्या संधी", "नवीन opportunities"],
 
-    "अगोदर्शक": "मार्गदर्शक",
+    ["एका वेळी एका संपर्काने", "एखाद्या contact मुळे"],
+    ["एका संपर्काने", "एखाद्या contact मुळे"],
 
-    "अनन्यसाधारण महत्त्व": "खूप महत्त्व",
+    ["व्यक्तिचं", "व्यक्तीचं"],
+    ["व्यक्तिशी", "व्यक्तीशी"],
+    ["एका व्यक्तीने", "एखाद्या व्यक्तीने"],
 
-    "प्रभावी संवादाचे महत्त्व": "चांगल्या संवादाचं महत्त्व",
+    ["तुमच्या अनुभवाचा लेख किंवा संपर्क साधा", "तुमचा experience share करा किंवा एखाद्या व्यक्तीशी connect व्हा"],
+    ["तुमच्या अनुभवाचा लेख", "तुमचा experience share करा"],
+    ["अनुभवाचा लेख", "experience share"],
 
-    "तात्पुरते संपर्क": "वेळोवेळी संपर्क",
+    ["कौशल्यांचे दर्शन करणे", "तुमची skills दाखवणे"],
+    ["कौशल्यांचे दर्शन", "तुमची skills दाखवणे"],
+    ["तुमच्या कौशल्यांचे दर्शन", "तुमची skills दाखवणे"],
 
-    "संधीच्या वेळी संपर्क साधणे": "योग्य वेळी संपर्क करणे",
+    ["प्रोफाईलचा आकर्षक दर्शवा", "तुमचा profile नीट दाखवा"],
+    ["आपल्या प्रोफाईलचे आकर्षक", "तुमचा profile चांगला"],
+    ["आपल्या उमेदवारीचा आकर्षक दर्शवा", "तुमची profile आणि skills नीट दाखवा"],
 
-    "आपल्या कौशल्यांची यादी जोडू शकता": "तुमची skills add करू शकता",
+    ["अनुस्मरण करा", "पुन्हा संपर्क करा"],
+    ["अनुस्मरण", "पुन्हा संपर्क"],
 
-    "आपल्या प्रोफाईलचे आकर्षक": "तुमचा profile चांगला",
+    ["अगोदर्शक", "मार्गदर्शक"],
+    ["अनन्यसाधारण महत्त्व", "खूप महत्त्व"],
+    ["प्रभावी संवादाचे महत्त्व", "चांगल्या संवादाचं महत्त्व"],
 
-    "नोकरी शोधण्याचे सर्वात महत्त्वाचे साधन": "नोकरी शोधताना उपयोगी गोष्ट",
+    ["तात्पुरते संपर्क", "वेळोवेळी संपर्क"],
+    ["संधीच्या वेळी संपर्क साधणे", "योग्य वेळी संपर्क करणे"],
 
-    "आपल्या उमेदवारीचा आकर्षक दर्शवा":
-      "तुमची profile आणि skills नीट दाखवा",
+    ["दृष्टीकोण", "दृष्टीकोन"],
+    ["संपर्ठ", "संपर्क"],
+    ["संपर्क राखणे", "संपर्कात राहणे"],
 
-    "तुमच्या कौशल्यांचे दर्शन":
-      "तुमची skills दाखवणे",
+    ["आपल्या कौशल्यांची यादी जोडू शकता", "तुमची skills add करू शकता"],
 
-    "नवीन अवसर तयार करा":
-      "नवीन संधी तयार करा",
+    ["नोकरी शोधण्याचे सर्वात महत्त्वाचे साधन", "नोकरी शोधताना उपयोगी गोष्ट"],
 
-    "नवीन अवसर मिळवा":
-      "नवीन संधी मिळवा",
+    ["नवीन अवसर तयार करा", "नवीन संधी तयार करा"],
+    ["नवीन अवसर मिळवा", "नवीन संधी मिळवा"],
+    ["अवसर", "संधी"],
 
-    "एका व्यक्तिशी":
-      "एका व्यक्तीशी",
+    ["इतरांच्या अगोदर जाण्याची संधी", "इतरांपेक्षा पुढे जाण्याची संधी"],
 
-    "इतरांच्या अगोदर जाण्याची संधी":
-      "इतरांपेक्षा पुढे जाण्याची संधी",
-
-    "संपर्क राखणे":
-      "संपर्कात राहणे"
-  };
+    ["आपण नोकरी शोधताना", "नोकरी शोधताना"],
+    ["आपल्या नोकरीच्या शोधात", "नोकरी शोधताना"]
+  ];
 
   let result = text;
 
-  for (const [bad, good] of Object.entries(replacements)) {
+  for (const [bad, good] of replacements) {
     result = result.split(bad).join(good);
   }
 
@@ -140,172 +153,197 @@ function cleanMarathi(text) {
 }
 
 
-// ======================================================
-// MARATHI HUMANIZER
-// ======================================================
+/* =====================================================
+   MARATHI NATURALIZER
+===================================================== */
 
-async function humanizeMarathi(post) {
+async function naturalizeMarathi(post) {
+
   const prompt = `
-You are PostMitra AI's Marathi Humanizer.
+You are the final Marathi editor for PostMitra AI.
 
-Your job is to rewrite the LinkedIn post below so it sounds like a REAL MARATHI PERSON wrote it.
+Rewrite the LinkedIn post below so it sounds EXACTLY like a normal educated young person from Maharashtra wrote it.
 
-Keep the original meaning.
+IMPORTANT:
 
-Do NOT add facts.
+Do not translate English sentences into formal Marathi.
 
-Do NOT invent stories.
+Do not use textbook Marathi.
 
-Do NOT make it formal.
+Do not use government Marathi.
 
-Do NOT make it sound like a textbook.
+Do not use Sanskrit-heavy Marathi.
 
-Do NOT translate English sentences word-for-word.
+Do not use complicated words.
 
-The final post should sound natural, simple and conversational.
+Marathi + English mixing is encouraged when it sounds natural.
 
-==================================================
-MARATHI STYLE
-==================================================
+Use words that young Marathi LinkedIn users actually use.
 
-Write in everyday Marathi used by people in Maharashtra.
+Natural words include:
 
-Marathi-English mixing is allowed when it sounds natural.
-
-Words such as these are completely normal:
-
+job
+resume
 LinkedIn
 profile
-resume
-job
-career
 networking
+connect
+contact
 skills
-interview
 experience
-headline
-content
-update
-job search
+career
+opportunity
+interview
+message
+share
+online
+application
+field
+company
 
-Do NOT translate these words unnecessarily.
-
-==================================================
-WORDS TO AVOID
-==================================================
-
-Never use awkward translated words such as:
-
-अवसर
-
-कौशल्यांचे दर्शन करणे
-
-कौशल्यांचे दर्शन
-
-अनुस्मरण
-
-अगोदर्शक
-
-संपर्ठ
-
-उमेदवारीचा आकर्षक
-
-प्रोफाईलचा आकर्षक दर्शवा
-
-अनन्यसाधारण महत्त्व
-
-प्रभावी संवादाचे महत्त्व
-
-तात्पुरते संपर्क
-
-दृष्टीकोण
+Do NOT unnecessarily translate these words.
 
 ==================================================
-NATURAL ALTERNATIVES
+NEVER USE THESE TYPES OF SENTENCES
 ==================================================
 
-अवसर → संधी
+"नोकरीच्या अधिकृत संधी"
 
-कौशल्यांचे दर्शन करणे → तुमची skills दाखवणे
+"नोकरीचा आमंत्रण मिळू शकतो"
 
-अनुस्मरण करणे → पुन्हा संपर्क करणे
+"नेटवर्किंग आपल्याला संधी दाखवू शकते"
 
-अगोदर्शक → मार्गदर्शक
+"तुमच्या अनुभवाचा लेख किंवा संपर्क साधा"
 
-संपर्ठ → संपर्क
+"तुमच्या उद्योजकतेचा वापर करा"
 
-दृष्टीकोण → दृष्टीकोन
+"तुमच्या संपर्कांच्या माध्यमातून"
+
+"संपर्कांच्या माध्यमातून तुम्ही"
+
+These sound translated or unnatural.
+
+==================================================
+NATURAL STYLE
+==================================================
+
+Instead of:
+
+"नोकरीच्या अधिकृत संधी"
+
+write:
+
+"नोकरीच्या नवीन संधी"
+
+Instead of:
+
+"नोकरीचा आमंत्रण मिळू शकतो"
+
+write:
+
+"एखाद्या contact मुळे job opportunity मिळू शकते."
+
+Instead of:
+
+"संपर्कांच्या माध्यमातून"
+
+write:
+
+"योग्य लोकांशी connect झाल्यामुळे"
+
+Instead of:
+
+"नेटवर्किंग आपल्याला नोकरीच्या बाहेर असलेल्या संधी दाखवू शकते"
+
+write:
+
+"Networking मुळे आपल्याला अशा opportunities मिळू शकतात ज्या online search करताना दिसत नाहीत."
 
 ==================================================
 WRITING STYLE
 ==================================================
 
-Write like:
+Write like a Marathi LinkedIn creator.
 
-- a young Marathi professional
-- a Marathi LinkedIn creator
-- a normal educated Marathi speaker
+Short paragraphs.
 
-Do NOT write like:
+Short sentences.
 
-- a textbook
-- a government notice
-- a translated English article
-- an AI-generated essay
+Natural pauses.
 
-Use simple sentences.
+Conversational tone.
 
-Keep paragraphs short.
+No essay style.
 
-Do not repeat the same sentence structure.
+No formal introduction.
 
-Do not overuse "आपण", "आपल्या" or "तुम्ही".
+No unnecessary explanation.
 
-Use natural expressions when appropriate:
+No forced motivational quotes.
 
-खरं सांगायचं तर
+No fake personal story.
 
-अनेकदा
+No invented statistics.
 
-कधी कधी
+No invented experience.
 
-लक्षात येतं
+Do not repeatedly start sentences with:
 
-उपयोगी पडतं
+तुम्ही
 
-करून बघा
+आपण
 
-पण त्यांचा अतिरेक करू नका.
+तुमच्या
+
+आपल्या
+
+Vary the sentences naturally.
 
 ==================================================
 VERY IMPORTANT
 ==================================================
 
-Before returning the post, read every sentence mentally.
+After rewriting every sentence, ask:
 
-Ask:
+"Would a real Marathi person actually write this sentence on LinkedIn?"
 
-"एखादा Marathi creator ही line खरंच LinkedIn वर अशी लिहील का?"
+If NO:
 
-If the answer is NO, rewrite that sentence in simpler Marathi.
+Rewrite it.
+
+If a Marathi sentence feels awkward, use a natural Marathi-English mix instead.
+
+Natural language is more important than pure Marathi.
+
+Keep the original meaning.
+
+Do not add new facts.
+
+Keep 3-5 hashtags.
 
 Return ONLY the final post.
 
-ORIGINAL POST:
+POST:
 
 ${post}
 `;
 
-  return await callAI(prompt);
+  let result = await callAI(prompt);
+
+  result = cleanMarathi(result);
+
+  return result;
 }
 
 
-// ======================================================
-// GENERATE POSTS
-// ======================================================
+/* =====================================================
+   GENERATE
+===================================================== */
 
 app.post("/api/generate", async (req, res) => {
+
   try {
+
     const {
       topic,
       language,
@@ -318,105 +356,29 @@ app.post("/api/generate", async (req, res) => {
       throw new Error("Topic is required");
     }
 
+    const languageText =
+      String(language || "").toLowerCase();
+
     const isMarathi =
-      String(language || "")
-        .toLowerCase()
-        .includes("marathi");
+      languageText.includes("marathi");
 
     const isHindi =
-      String(language || "")
-        .toLowerCase()
-        .includes("hindi");
+      languageText.includes("hindi");
 
-    let languageRules = "";
 
-    // ==================================================
-    // MARATHI
-    // ==================================================
+    /* ================================================
+       MARATHI GENERATION
+    ================================================= */
 
     if (isMarathi) {
-      languageRules = `
-MARATHI MODE
 
-Write in natural everyday Marathi.
-
-Marathi-English mixing is allowed.
-
-Do not translate English words unnecessarily.
-
-Use simple words.
-
-Avoid Sanskrit-heavy vocabulary.
-
-Avoid textbook Marathi.
-
-Avoid government-style Marathi.
-
-The post should sound like a real Marathi LinkedIn creator.
-
-Never use:
-अवसर
-अनुस्मरण
-अगोदर्शक
-संपर्ठ
-कौशल्यांचे दर्शन
-उमेदवारीचा आकर्षक
-अनन्यसाधारण
-प्रभावी संवादाचे महत्त्व
-`;
-    }
-
-    // ==================================================
-    // HINDI
-    // ==================================================
-
-    else if (isHindi) {
-      languageRules = `
-HINDI MODE
-
-Use natural conversational Indian Hindi.
-
-Hindi-English mixing is allowed.
-
-Avoid textbook Hindi.
-
-Avoid unnecessarily formal Hindi.
-
-Write like a real Indian LinkedIn creator.
-`;
-    }
-
-    // ==================================================
-    // ENGLISH
-    // ==================================================
-
-    else {
-      languageRules = `
-ENGLISH MODE
-
-Use natural conversational professional English.
-
-Avoid corporate buzzwords.
-
-Avoid generic AI phrases.
-
-Use simple vocabulary.
-
-Write like a real LinkedIn creator.
-`;
-    }
-
-
-    const prompt = `
+      const prompt = `
 You are PostMitra AI.
 
-Create LinkedIn posts that sound like real people wrote them.
+Create a natural LinkedIn post in everyday Marathi used in Maharashtra.
 
 TOPIC:
 ${topic}
-
-LANGUAGE:
-${language}
 
 TONE:
 ${tone}
@@ -427,85 +389,139 @@ ${length}
 AUDIENCE:
 ${audience || "general LinkedIn audience"}
 
-${languageRules}
-
 ==================================================
-HUMAN WRITING RULES
+IMPORTANT LANGUAGE RULE
 ==================================================
 
-1. Write like a real person.
+This is NOT a Marathi translation task.
 
-2. Keep the language simple.
+Write directly in natural Marathi.
 
-3. Avoid robotic writing.
+Marathi-English mixing is allowed.
 
-4. Avoid textbook language.
+Use English words naturally:
 
-5. Avoid corporate buzzwords.
+LinkedIn
+job
+resume
+networking
+skills
+career
+profile
+connect
+contact
+experience
+opportunity
+interview
+message
+online
+application
 
-6. Avoid generic motivational phrases.
-
-7. Do not invent personal experiences.
-
-8. Do not invent statistics.
-
-9. Do not repeat the same idea.
-
-10. Use short paragraphs.
-
-11. Vary sentence lengths.
-
-12. Make the post useful.
-
-13. Make the post relatable.
-
-14. Do not force a CTA.
-
-15. Use 3-5 relevant hashtags.
+Do NOT translate these unnecessarily.
 
 ==================================================
-AVOID THESE AI OPENINGS
+DO NOT USE
 ==================================================
 
-"In today's digital world..."
-
-"In today's fast-paced world..."
-
-"In the ever-evolving landscape..."
-
-"In the modern era..."
-
-"Success is not just about..."
-
-"It is important to understand..."
-
-"Let's dive into..."
-
-"Here are some key insights..."
-
-"Here are some key takeaways..."
-
-"In conclusion..."
+अविभाज्य भाग
+अधिकृत नोकरीच्या संधी
+नोकरीचा आमंत्रण
+नोकरीचे आमंत्रण
+संपर्कांच्या माध्यमातून
+तुमच्या उद्योजकतेचा वापर
+कौशल्यांचे दर्शन
+अनुस्मरण
+अगोदर्शक
+अनन्यसाधारण
+प्रभावी संवादाचे महत्त्व
+संपर्ठ
+दृष्टीकोण
 
 ==================================================
-LINKEDIN STYLE
+NATURAL MARATHI
 ==================================================
 
-The hook should feel natural.
+Prefer:
 
-The body should give genuine value.
+महत्त्वाचा भाग
+नोकरीची संधी
+नवीन opportunity
+योग्य लोकांशी connect होणं
+contact मध्ये राहणं
+तुमचा experience share करणं
+तुमची skills दाखवणं
+profile नीट ठेवणं
+message करणं
+
+==================================================
+POST STYLE
+==================================================
+
+Start with a natural hook.
+
+Do NOT start with:
+
+"आजच्या डिजिटल युगात"
+
+"आजच्या आधुनिक काळात"
+
+"हे लक्षात घेणे महत्त्वाचे आहे"
+
+"यशस्वी होण्यासाठी"
+
+"नोकरी मिळवण्यासाठी हे आवश्यक आहे"
+
+Instead start with a question, observation or relatable situation.
+
+Example style:
+
+"नोकरी शोधताना आपण कुठे चुकतो?"
+
+"Resume पाठवून reply ची वाट पाहत बसतोय?"
+
+"LinkedIn वर profile आहे, पण networking किती करतो?"
+
+Do NOT copy these examples exactly.
+
+==================================================
+BODY
+==================================================
+
+Give practical value.
 
 Use short paragraphs.
 
-Do not make the post look like an essay.
+Make it sound like a real person.
 
-Do not use unnecessary headings.
+Avoid essay-like explanations.
 
-The CTA should feel natural.
+Do not repeat the same idea.
+
+Do not use fake statistics.
+
+Do not invent personal experiences.
 
 ==================================================
-CREATE 5 DIFFERENT POSTS
+ENDING
 ==================================================
+
+End naturally.
+
+A simple suggestion or question is enough.
+
+Do not force a motivational CTA.
+
+==================================================
+HASHTAGS
+==================================================
+
+Use 3-5 relevant hashtags.
+
+==================================================
+CREATE 5 POSTS
+==================================================
+
+Each post must be different.
 
 POST 1:
 Relatable observation
@@ -514,7 +530,7 @@ POST 2:
 Practical advice
 
 POST 3:
-Story or situation
+Realistic situation
 
 POST 4:
 Opinion
@@ -522,36 +538,32 @@ Opinion
 POST 5:
 Simple lesson
 
-Make each post genuinely different.
-
 ==================================================
-OUTPUT FORMAT
+OUTPUT
 ==================================================
-
-Return EXACTLY:
 
 POST 1
-[complete post]
+[post]
 
 ---
 
 POST 2
-[complete post]
+[post]
 
 ---
 
 POST 3
-[complete post]
+[post]
 
 ---
 
 POST 4
-[complete post]
+[post]
 
 ---
 
 POST 5
-[complete post]
+[post]
 
 ---
 
@@ -594,35 +606,188 @@ CTA: XX/20
 
 BEST POST: POST X
 
-Do not add any explanation before or after this format.
+Return ONLY this format.
 `;
 
-    // ==================================================
-    // FIRST GENERATION
-    // ==================================================
+      console.log("MARATHI GENERATION STARTED...");
 
-    let generatedPost = await callAI(prompt);
+      let generatedPost = await callAI(prompt);
 
-
-    // ==================================================
-    // MARATHI HUMANIZATION
-    // ==================================================
-
-    if (isMarathi) {
-      console.log("MARATHI HUMANIZATION STARTED...");
+      console.log("MARATHI FIRST GENERATION DONE.");
 
       generatedPost =
-        await humanizeMarathi(generatedPost);
+        await naturalizeMarathi(generatedPost);
 
-      // Final automatic word correction
+      console.log("MARATHI NATURALIZATION DONE.");
+
       generatedPost =
         cleanMarathi(generatedPost);
 
-      console.log(
-        "MARATHI HUMANIZATION COMPLETED."
-      );
+      console.log("MARATHI CLEANUP DONE.");
+
+      return res.json({
+        success: true,
+        post: generatedPost
+      });
     }
 
+
+    /* ================================================
+       HINDI / ENGLISH
+    ================================================= */
+
+    let languageRules = "";
+
+    if (isHindi) {
+
+      languageRules = `
+Use natural conversational Indian Hindi.
+
+Hindi-English mixing is allowed.
+
+Avoid textbook Hindi.
+
+Avoid overly formal Hindi.
+
+Write like a real Indian LinkedIn creator.
+`;
+
+    } else {
+
+      languageRules = `
+Use natural conversational professional English.
+
+Avoid corporate buzzwords.
+
+Avoid generic AI phrases.
+
+Use simple vocabulary.
+
+Write like a real LinkedIn creator.
+`;
+    }
+
+
+    const prompt = `
+You are PostMitra AI.
+
+Create natural LinkedIn posts.
+
+TOPIC:
+${topic}
+
+LANGUAGE:
+${language}
+
+TONE:
+${tone}
+
+LENGTH:
+${length}
+
+AUDIENCE:
+${audience || "general LinkedIn audience"}
+
+${languageRules}
+
+Write like a real person.
+
+Avoid robotic writing.
+
+Avoid generic motivational phrases.
+
+Do not invent facts.
+
+Do not invent personal experiences.
+
+Use short paragraphs.
+
+Create 5 genuinely different posts.
+
+POST 1:
+Relatable observation
+
+POST 2:
+Practical advice
+
+POST 3:
+Realistic situation
+
+POST 4:
+Opinion
+
+POST 5:
+Simple lesson
+
+OUTPUT:
+
+POST 1
+[post]
+
+---
+
+POST 2
+[post]
+
+---
+
+POST 3
+[post]
+
+---
+
+POST 4
+[post]
+
+---
+
+POST 5
+[post]
+
+---
+
+SCORES
+
+POST 1: XX/100
+HOOK: XX/20
+VALUE: XX/20
+READABILITY: XX/20
+ENGAGEMENT: XX/20
+CTA: XX/20
+
+POST 2: XX/100
+HOOK: XX/20
+VALUE: XX/20
+READABILITY: XX/20
+ENGAGEMENT: XX/20
+CTA: XX/20
+
+POST 3: XX/100
+HOOK: XX/20
+VALUE: XX/20
+READABILITY: XX/20
+ENGAGEMENT: XX/20
+CTA: XX/20
+
+POST 4: XX/100
+HOOK: XX/20
+VALUE: XX/20
+READABILITY: XX/20
+ENGAGEMENT: XX/20
+CTA: XX/20
+
+POST 5: XX/100
+HOOK: XX/20
+VALUE: XX/20
+READABILITY: XX/20
+ENGAGEMENT: XX/20
+CTA: XX/20
+
+BEST POST: POST X
+`;
+
+    const generatedPost =
+      await callAI(prompt);
 
     res.json({
       success: true,
@@ -630,7 +795,11 @@ Do not add any explanation before or after this format.
     });
 
   } catch (error) {
-    console.error("GENERATE ERROR:", error);
+
+    console.error(
+      "GENERATE ERROR:",
+      error
+    );
 
     res.status(500).json({
       success: false,
@@ -640,12 +809,14 @@ Do not add any explanation before or after this format.
 });
 
 
-// ======================================================
-// IMPROVE / HUMANIZE POST
-// ======================================================
+/* =====================================================
+   IMPROVE
+===================================================== */
 
 app.post("/api/improve", async (req, res) => {
+
   try {
+
     const { post } = req.body;
 
     if (!post) {
@@ -653,70 +824,68 @@ app.post("/api/improve", async (req, res) => {
     }
 
     const prompt = `
-You are PostMitra AI's Humanize engine.
+You are PostMitra AI's final human editor.
 
-Rewrite this LinkedIn post so it sounds like a real person wrote it.
+Rewrite the following LinkedIn post so it sounds like a real person wrote it.
 
-Keep the original meaning.
+Keep the meaning.
 
 Do not add facts.
 
-Do not invent experiences.
+Do not invent stories.
 
-Do not make it more formal.
-
-Remove:
-
-- robotic language
-- AI-like phrases
-- corporate buzzwords
-- textbook language
-- repetitive sentences
-- unnecessary emojis
-- generic CTA
+Do not make it formal.
 
 If the post is Marathi:
 
-Use everyday Marathi.
+Use everyday Maharashtra Marathi.
 
 Marathi-English mixing is allowed.
 
-Do not translate English words unnecessarily.
+Natural words:
 
-Avoid these words:
+job
+resume
+LinkedIn
+networking
+connect
+contact
+skills
+experience
+career
+opportunity
+profile
+message
+share
 
-अवसर
+Avoid:
+
+अविभाज्य भाग
+अधिकृत नोकरीच्या संधी
+नोकरीचा आमंत्रण
+नोकरीचे आमंत्रण
+संपर्कांच्या माध्यमातून
+कौशल्यांचे दर्शन
 अनुस्मरण
 अगोदर्शक
-संपर्ठ
-कौशल्यांचे दर्शन
-उमेदवारीचा आकर्षक
 अनन्यसाधारण
 प्रभावी संवादाचे महत्त्व
+संपर्ठ
 दृष्टीकोण
 
-Prefer:
+Use short paragraphs.
 
-संधी
-पुन्हा संपर्क
-मार्गदर्शक
-संपर्क
-skills दाखवणे
-profile नीट दाखवणे
-खूप महत्त्व
-दृष्टीकोन
+Avoid repeated sentence structures.
 
-Write like a Marathi LinkedIn creator.
+Do not sound like a textbook.
 
-Keep paragraphs short.
+Do not sound like a translated English article.
 
-Keep useful information.
+Write like a young Marathi LinkedIn creator.
 
-Keep 3-5 hashtags maximum.
+Return ONLY the final post.
 
-Return ONLY the improved post.
-
-ORIGINAL POST:
+POST:
 
 ${post}
 `;
@@ -733,7 +902,11 @@ ${post}
     });
 
   } catch (error) {
-    console.error("IMPROVE ERROR:", error);
+
+    console.error(
+      "IMPROVE ERROR:",
+      error
+    );
 
     res.status(500).json({
       success: false,
@@ -743,12 +916,14 @@ ${post}
 });
 
 
-// ======================================================
-// START SERVER
-// ======================================================
+/* =====================================================
+   SERVER
+===================================================== */
 
 app.listen(3000, () => {
+
   console.log(
     "PostMitra AI server running on http://localhost:3000"
   );
+
 });
