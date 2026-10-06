@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -243,30 +242,39 @@
       border: 1px solid #dbe2ea;
     }
 
+    /* ==========================================
+       OLD STYLE SCORE DISPLAY - NO COLUMNS
+       ========================================== */
+
     .score-breakdown {
       margin: 14px 0 16px;
-      padding: 12px;
+      padding: 12px 10px;
       background: #f8fafc;
       border: 1px solid #e2e8f0;
       border-radius: 12px;
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: nowrap;
     }
 
     .score-breakdown div {
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 9px;
-      padding: 9px 6px;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 4px 5px;
       text-align: center;
+      flex: 1;
+      min-width: 0;
     }
 
     .score-breakdown span {
-      display: block;
-      font-size: 11px;
+      display: inline;
+      font-size: 13px;
       color: #64748b;
-      margin-bottom: 4px;
+      margin-right: 4px;
     }
 
     .score-breakdown strong {
@@ -295,8 +303,23 @@
     }
 
     @media (max-width: 600px) {
+
       .score-breakdown {
-        grid-template-columns: repeat(2, 1fr);
+        gap: 4px;
+        padding: 10px 4px;
+      }
+
+      .score-breakdown div {
+        padding: 4px 2px;
+      }
+
+      .score-breakdown span {
+        font-size: 11px;
+        margin-right: 2px;
+      }
+
+      .score-breakdown strong {
+        font-size: 12px;
       }
 
       header {
@@ -1312,11 +1335,6 @@ async function generatePost() {
     }
 
 
-    /* ================================================
-       IMPORTANT:
-       LOCAL BACKEND
-    ================================================= */
-
     const response =
       await fetch(
         `${API_BASE_URL}/api/generate`,
@@ -1557,9 +1575,7 @@ async function generatePost() {
             <div class="score-breakdown">
 
               <div>
-                <span>
-                  Hook
-                </span>
+                <span>Hook</span>
 
                 <strong>
                   ${
@@ -1573,9 +1589,7 @@ async function generatePost() {
 
 
               <div>
-                <span>
-                  Value
-                </span>
+                <span>Value</span>
 
                 <strong>
                   ${
@@ -1589,9 +1603,7 @@ async function generatePost() {
 
 
               <div>
-                <span>
-                  Readability
-                </span>
+                <span>Readability</span>
 
                 <strong>
                   ${
@@ -1605,9 +1617,7 @@ async function generatePost() {
 
 
               <div>
-                <span>
-                  Engagement
-                </span>
+                <span>Engagement</span>
 
                 <strong>
                   ${
@@ -1621,9 +1631,7 @@ async function generatePost() {
 
 
               <div>
-                <span>
-                  CTA
-                </span>
+                <span>CTA</span>
 
                 <strong>
                   ${
@@ -2914,4 +2922,3 @@ function escapeHTML(
 
 </body>
 </html>
-```
