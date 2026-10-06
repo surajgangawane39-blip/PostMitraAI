@@ -1,12 +1,17 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>PostMitra AI</title>
+
   <link rel="icon" type="image/png" href="/postmitra-favicon.png">
 
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     * {
@@ -27,23 +32,26 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
     }
 
     .logo {
-  font-size: 25px;
-  font-weight: 800;
-  color: #7c3aed;
-  letter-spacing: -0.5px;
-}
+      font-size: 25px;
+      font-weight: 800;
+      color: #7c3aed;
+      letter-spacing: -0.5px;
+    }
 
     .badge {
-  font-size: 13px;
-  background: #f3e8ff;
-  color: #7c3aed;
-  padding: 7px 12px;
-  border-radius: 20px;
-  font-weight: 600;
-}
+      font-size: 13px;
+      background: #f3e8ff;
+      color: #7c3aed;
+      padding: 7px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
     main {
       max-width: 1150px;
       margin: 0 auto;
@@ -72,17 +80,12 @@
     }
 
     .panel {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.07);
-  transition: 0.2s;
-}
-
-.panel:hover {
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.10);
-}
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 12px 35px rgba(15, 23, 42, 0.07);
+    }
 
     h2 {
       margin-top: 0;
@@ -95,24 +98,23 @@
     }
 
     textarea,
-input,
-select {
-  width: 100%;
-  padding: 13px;
-  border: 1px solid #d7dce5;
-  border-radius: 12px;
-  font-size: 15px;
-  background: white;
-  transition: 0.2s;
-}
+    input,
+    select {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #d7dce5;
+      border-radius: 12px;
+      font-size: 15px;
+      background: white;
+    }
 
-textarea:focus,
-input:focus,
-select:focus {
-  outline: none;
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
-}
+    textarea:focus,
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+    }
 
     textarea {
       height: 140px;
@@ -134,28 +136,33 @@ select:focus {
       font-weight: 700;
     }
 
-    .primary {
-      width: 100%;
-      margin-top: 22px;
+    .primary,
+    .primary-btn {
       background: #7c3aed;
       color: white;
     }
 
-    .primary:hover {
-      background: #0f56bd;
+    .primary {
+      width: 100%;
+      margin-top: 22px;
     }
 
-   .secondary {
-  background: #eef2f7;
-  color: #172033;
-  margin-right: 8px;
-  border: 1px solid #dbe2ea;
-  transition: 0.2s;
-}
+    .primary:hover,
+    .primary-btn:hover {
+      background: #6d28d9;
+    }
 
-.secondary:hover {
-  background: #e2e8f0;
-}
+    .secondary,
+    .secondary-btn {
+      background: #eef2f7;
+      color: #172033;
+      border: 1px solid #dbe2ea;
+    }
+
+    .secondary:hover,
+    .secondary-btn:hover {
+      background: #e2e8f0;
+    }
 
     .result {
       min-height: 300px;
@@ -182,44 +189,89 @@ select:focus {
       line-height: 1.5;
     }
 
-    .loading {.score-breakdown {
-  margin: 14px 0 16px;
-  padding: 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-}
-
-.score-breakdown div {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 9px;
-  padding: 9px 6px;
-  text-align: center;
-}
-
-.score-breakdown span {
-  display: block;
-  font-size: 11px;
-  color: #64748b;
-  margin-bottom: 4px;
-}
-
-.score-breakdown strong {
-  font-size: 14px;
-  color: #7c3aed;
-}
-
-@media (max-width: 600px) {
-  .score-breakdown {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-      color: #1769e0;
+    .loading {
+      color: #7c3aed;
       font-weight: 600;
+    }
+
+    .post-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      margin-bottom: 14px;
+      padding: 16px;
+    }
+
+    .best-post {
+      border: 2px solid #7c3aed;
+    }
+
+    .post-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .score {
+      color: #7c3aed;
+      font-weight: 700;
+    }
+
+    .best-badge {
+      display: inline-block;
+      background: #f3e8ff;
+      color: #7c3aed;
+      padding: 5px 9px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .post-text {
+      line-height: 1.7;
+      white-space: normal;
+      word-break: break-word;
+      margin-bottom: 12px;
+    }
+
+    .post-card button {
+      margin: 5px 5px 0 0;
+      background: #eef2f7;
+      color: #172033;
+      border: 1px solid #dbe2ea;
+    }
+
+    .score-breakdown {
+      margin: 14px 0 16px;
+      padding: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+
+    .score-breakdown div {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 9px;
+      padding: 9px 6px;
+      text-align: center;
+    }
+
+    .score-breakdown span {
+      display: block;
+      font-size: 11px;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+
+    .score-breakdown strong {
+      font-size: 14px;
+      color: #7c3aed;
     }
 
     footer {
@@ -241,87 +293,183 @@ select:focus {
         grid-template-columns: 1fr;
       }
     }
+
+    @media (max-width: 600px) {
+      .score-breakdown {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      header {
+        justify-content: center;
+      }
+    }
   </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  const SUPABASE_URL = "https://rcpoaglxvnblpgrupigf.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_mis5Xp_v8CYUf8g8_j7M2A_0v0D6yvq";
 
-  const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
-</script>
+  <script>
+    const SUPABASE_URL =
+      "https://rcpoaglxvnblpgrupigf.supabase.co";
 
-  <meta name="google-site-verification" content="-lBiUpJ6AnrK2x5HDGVoYHbi7aOfDRoO-JloXpZuP6U" />
-  
+    const SUPABASE_KEY =
+      "sb_publishable_mis5Xp_v8CYUf8g8_j7M2A_0v0D6yvq";
+
+    const supabaseClient =
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+  </script>
+
+  <meta
+    name="google-site-verification"
+    content="-lBiUpJ6AnrK2x5HDGVoYHbi7aOfDRoO-JloXpZuP6U"
+  >
 </head>
 
 <body>
 
 <header>
-  <div class="logo">PostMitra AI</div>
 
-  <div class="badge">AI LinkedIn Post Generator</div>
-   
-  <div style="display:flex; gap:10px; align-items:center;">
-  <button onclick="openAuth('login')" class="secondary-btn">Login</button>
-  <button onclick="openAuth('signup')" class="primary-btn">Sign Up</button>
-</div>
+  <div class="logo">
+    PostMitra AI
+  </div>
+
+  <div class="badge">
+    AI LinkedIn Post Generator
+  </div>
+
+  <div
+    id="authButtons"
+    style="display:flex; gap:10px; align-items:center;"
+  >
+    <button
+      onclick="openAuth('login')"
+      class="secondary-btn"
+    >
+      Login
+    </button>
+
+    <button
+      onclick="openAuth('signup')"
+      class="primary-btn"
+    >
+      Sign Up
+    </button>
+  </div>
+
 </header>
+
 
 <main>
 
   <section class="hero">
-    <h1>Turn Your Ideas Into Powerful LinkedIn Posts.</h1>
-    <p>Create, improve and score LinkedIn posts with AI — in English, Marathi or Hindi.</p>
+
+    <h1>
+      Turn Your Ideas Into Powerful LinkedIn Posts.
+    </h1>
+
+    <p>
+      Create, improve and score LinkedIn posts with AI —
+      in English, Marathi or Hindi.
+    </p>
+
   </section>
+
 
   <section class="layout">
 
     <div class="panel">
+
       <h2>✍️ Create a post</h2>
 
-      <label for="topic">What do you want to write about?</label>
+      <label for="topic">
+        What do you want to write about?
+      </label>
 
       <textarea
         id="topic"
         placeholder="Example: What I learned while starting my small business..."
       ></textarea>
 
+
       <div class="row">
 
         <div>
-          <label for="language">Language</label>
+
+          <label for="language">
+            Language
+          </label>
 
           <select id="language">
-            <option value="English">English</option>
-            <option value="Marathi">मराठी (Marathi)</option>
-            <option value="Hindi">हिंदी (Hindi)</option>
+
+            <option value="English">
+              English
+            </option>
+
+            <option value="Marathi">
+              मराठी (Marathi)
+            </option>
+
+            <option value="Hindi">
+              हिंदी (Hindi)
+            </option>
+
           </select>
+
         </div>
+
 
         <div>
-          <label for="tone">Writing tone</label>
+
+          <label for="tone">
+            Writing tone
+          </label>
 
           <select id="tone">
-            <option value="Professional">Professional</option>
-            <option value="Friendly">Friendly</option>
-            <option value="Storytelling">Storytelling</option>
-            <option value="Motivational">Motivational</option>
-        </select>
-          
-        </div>
+
+            <option value="Professional">
+              Professional
+            </option>
+
+            <option value="Friendly">
+              Friendly
+            </option>
+
+            <option value="Storytelling">
+              Storytelling
+            </option>
+
+            <option value="Motivational">
+              Motivational
+            </option>
+
+          </select>
 
         </div>
 
-<label for="length">Post length</label>
+      </div>
 
-<select id="length">
-  <option value="Short">Short</option>
-  <option value="Medium" selected>Medium</option>
-  <option value="Long">Long</option>
-</select>
+
+      <label for="length">
+        Post length
+      </label>
+
+      <select id="length">
+
+        <option value="Short">
+          Short
+        </option>
+
+        <option value="Medium" selected>
+          Medium
+        </option>
+
+        <option value="Long">
+          Long
+        </option>
+
+      </select>
+
+
       <label for="audience">
         Who is this post for? (optional)
       </label>
@@ -331,12 +479,14 @@ select:focus {
         placeholder="e.g. founders, freelancers, students"
       >
 
-      <button class="primary" onclick="generatePost()">
+
+      <button
+        class="primary"
+        onclick="generatePost()"
+      >
         Generate AI post →
       </button>
-<button onclick="savePost(${JSON.stringify(post.text)}, ${JSON.stringify(post.number)}, ${JSON.stringify(scores[post.number] || "--")})">
-  💾 Save Post
-</button>
+
 
       <p class="hint">
         Your request is sent to your local PostMitra AI backend.
@@ -347,975 +497,1869 @@ select:focus {
 
     <div class="panel">
 
-      <h2>🪄 Your AI draft</h2>
-<button class="secondary" onclick="showSavedPosts()">
-  💾 Saved Posts
-</button>
+      <h2>
+        🪄 Your AI draft
+      </h2>
 
-      <div id="result" class="result empty">
+
+      <button
+        class="secondary"
+        onclick="showSavedPosts()"
+      >
+        💾 Saved Posts
+      </button>
+
+
+      <div
+        id="result"
+        class="result empty"
+      >
         Your generated post will appear here.
         Enter a topic and click “Generate AI post”.
       </div>
 
+
       <div class="actions">
-        <button class="secondary" onclick="copyPost()">
+
+        <button
+          class="secondary"
+          onclick="copyPost()"
+        >
           Copy draft
         </button>
 
-        <button class="secondary" onclick="clearPost()">
+        <button
+          class="secondary"
+          onclick="clearPost()"
+        >
           Clear
         </button>
+
       </div>
 
+
       <p class="notice">
-        PostMitra AI is currently connected to the AI backend running on your computer.
+        PostMitra AI is currently connected to the AI backend
+        running on your computer.
       </p>
 
     </div>
 
   </section>
 
-<section style="text-align:center; margin-top:50px;">
 
-  <h2 style="font-size:32px; margin-bottom:10px;">
-    Simple Pricing
-  </h2>
+  <!-- PRICING -->
 
-  <p style="color:#64748b; margin-bottom:30px;">
-    Start creating better LinkedIn content with PostMitra AI.
-  </p>
+  <section
+    style="text-align:center; margin-top:50px;"
+  >
 
-  <div style="
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    gap:20px;
-    max-width:800px;
-    margin:auto;
-  ">
+    <h2 style="font-size:32px; margin-bottom:10px;">
+      Simple Pricing
+    </h2>
 
-    <div style="
+    <p style="color:#64748b; margin-bottom:30px;">
+      Start creating better LinkedIn content with PostMitra AI.
+    </p>
+
+
+    <div
+      style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+        gap:20px;
+        max-width:800px;
+        margin:auto;
+      "
+    >
+
+      <div
+        style="
+          background:white;
+          padding:25px;
+          border-radius:18px;
+          border:1px solid #e2e8f0;
+          box-shadow:0 10px 25px rgba(15,23,42,.06);
+        "
+      >
+
+        <h3>
+          Free
+        </h3>
+
+        <h2>
+          ₹0
+        </h2>
+
+        <p>
+          Try PostMitra AI
+        </p>
+
+        <p>
+          5 AI posts
+        </p>
+
+        <p>
+          AI scoring
+        </p>
+
+        <p>
+          Copy & Save
+        </p>
+
+      </div>
+
+
+      <div
+        style="
+          background:white;
+          padding:25px;
+          border-radius:18px;
+          border:2px solid #7c3aed;
+          box-shadow:0 12px 30px rgba(124,58,237,.12);
+        "
+      >
+
+        <h3 style="color:#7c3aed;">
+          Pro
+        </h3>
+
+        <h2>
+          ₹199/month
+        </h2>
+
+        <p>
+          50 AI generations/month
+        </p>
+
+        <p>
+          Advanced AI controls
+        </p>
+
+        <p>
+          Improve posts with AI
+        </p>
+
+        <p>
+          More productivity features
+        </p>
+
+
+        <button
+          onclick="upgradeToPro()"
+          style="
+            margin-top:15px;
+            width:100%;
+            background:#7c3aed;
+            color:white;
+            padding:13px;
+            border-radius:10px;
+            font-weight:700;
+          "
+        >
+          Upgrade to Pro
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- FEEDBACK -->
+
+  <section
+    style="
+      margin-top:50px;
       background:white;
-      padding:25px;
+      padding:30px;
       border-radius:18px;
       border:1px solid #e2e8f0;
       box-shadow:0 10px 25px rgba(15,23,42,.06);
-    ">
-      <h3>Free</h3>
-      <h2>₹0</h2>
-      <p>Try PostMitra AI</p>
-      <p>5 AI posts</p>
-      <p>AI scoring</p>
-      <p>Copy & Save</p>
-    </div>
-
-    <div style="
-      background:white;
-      padding:25px;
-      border-radius:18px;
-      border:2px solid #7c3aed;
-      box-shadow:0 12px 30px rgba(124,58,237,.12);
-    ">
-      <h3 style="color:#7c3aed;">Pro</h3>
-      <h2>₹199/month</h2>
-      <p>50 AI generations/month</p>
-      <p>Advanced AI controls</p>
-      <p>Improve posts with AI</p>
-      <p>More productivity features</p>
-
-<button onclick="upgradeToPro()" style="
-  margin-top:15px;
-  width:100%;
-  background:#7c3aed;
-  color:white;
-  padding:13px;
-  border-radius:10px;
-  font-weight:700;
-">
-  Upgrade to Pro
-</button>
-    </div>
-
-  </div>
-
-</section>
-<section style="
-  margin-top:50px;
-  background:white;
-  padding:30px;
-  border-radius:18px;
-  border:1px solid #e2e8f0;
-  box-shadow:0 10px 25px rgba(15,23,42,.06);
-  max-width:800px;
-  margin-left:auto;
-  margin-right:auto;
-">
-
-  <h2 style="text-align:center; margin-bottom:8px;">
-    💬 Help us improve PostMitra AI
-  </h2>
-
-  <p style="
-    text-align:center;
-    color:#64748b;
-    margin-bottom:25px;
-  ">
-    Tell us what you liked, what we can improve, or what feature you'd like next.
-  </p>
-
-  <label style="font-weight:600;">
-    Your rating
-  </label>
-
-  <select id="feedbackRating" style="
-    width:100%;
-    padding:12px;
-    margin-top:8px;
-    margin-bottom:18px;
-    border:1px solid #cbd5e1;
-    border-radius:10px;
-  ">
-    <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
-    <option value="4">⭐⭐⭐⭐ Good</option>
-    <option value="3">⭐⭐⭐ Average</option>
-    <option value="2">⭐⭐ Needs improvement</option>
-    <option value="1">⭐ Poor</option>
-  </select>
-
-  <textarea
-    id="feedbackMessage"
-    placeholder="Tell us your feedback..."
-    style="
-      width:100%;
-      min-height:120px;
-      padding:12px;
-      border:1px solid #cbd5e1;
-      border-radius:10px;
-      resize:vertical;
-      box-sizing:border-box;
-    "
-  ></textarea>
-
-  <button
-    onclick="submitFeedback()"
-    class="primary-btn"
-    style="
-      width:100%;
-      margin-top:15px;
+      max-width:800px;
+      margin-left:auto;
+      margin-right:auto;
     "
   >
-    Submit Feedback
-  </button>
 
-  <p id="feedbackStatus" style="
-    text-align:center;
-    margin-top:15px;
-    font-size:14px;
-  "></p>
+    <h2 style="text-align:center; margin-bottom:8px;">
+      💬 Help us improve PostMitra AI
+    </h2>
 
-</section>
-  
+    <p
+      style="
+        text-align:center;
+        color:#64748b;
+        margin-bottom:25px;
+      "
+    >
+      Tell us what you liked, what we can improve,
+      or what feature you'd like next.
+    </p>
+
+
+    <label>
+      Your rating
+    </label>
+
+    <select
+      id="feedbackRating"
+      style="
+        width:100%;
+        padding:12px;
+        margin-top:8px;
+        margin-bottom:18px;
+        border:1px solid #cbd5e1;
+        border-radius:10px;
+      "
+    >
+
+      <option value="5">
+        ⭐⭐⭐⭐⭐ Excellent
+      </option>
+
+      <option value="4">
+        ⭐⭐⭐⭐ Good
+      </option>
+
+      <option value="3">
+        ⭐⭐⭐ Average
+      </option>
+
+      <option value="2">
+        ⭐⭐ Needs improvement
+      </option>
+
+      <option value="1">
+        ⭐ Poor
+      </option>
+
+    </select>
+
+
+    <textarea
+      id="feedbackMessage"
+      placeholder="Tell us your feedback..."
+      style="
+        width:100%;
+        min-height:120px;
+        padding:12px;
+        border:1px solid #cbd5e1;
+        border-radius:10px;
+        resize:vertical;
+      "
+    ></textarea>
+
+
+    <button
+      onclick="submitFeedback()"
+      class="primary-btn"
+      style="
+        width:100%;
+        margin-top:15px;
+      "
+    >
+      Submit Feedback
+    </button>
+
+
+    <p
+      id="feedbackStatus"
+      style="
+        text-align:center;
+        margin-top:15px;
+        font-size:14px;
+      "
+    ></p>
+
+  </section>
+
 </main>
-  
+
+
 <footer>
+
   PostMitra AI · Building the future of LinkedIn content
+
 </footer>
 
 
 <script>
 
+/* =====================================================
+   BACKEND URL
+===================================================== */
+
+const API_BASE_URL =
+  "http://localhost:3000";
+
+
+/* =====================================================
+   AUTH
+===================================================== */
+
 function openAuth(mode) {
+
   document.getElementById("authModal").style.display = "flex";
 
   if (mode === "signup") {
-    document.getElementById("authTitle").textContent = "Create Account";
-    document.getElementById("authSubmit").textContent = "Sign Up";
+
+    document.getElementById("authTitle").textContent =
+      "Create Account";
+
+    document.getElementById("authSubmit").textContent =
+      "Sign Up";
+
   } else {
-    document.getElementById("authTitle").textContent = "Login";
-    document.getElementById("authSubmit").textContent = "Login";
+
+    document.getElementById("authTitle").textContent =
+      "Login";
+
+    document.getElementById("authSubmit").textContent =
+      "Login";
   }
 
   document.getElementById("authMessage").textContent = "";
 }
 
+
 function closeAuth() {
-  document.getElementById("authModal").style.display = "none";
+
+  document.getElementById("authModal").style.display =
+    "none";
 }
 
+
 async function submitAuth() {
-  const email = document.getElementById("authEmail").value.trim();
-  const password = document.getElementById("authPassword").value;
-  const title = document.getElementById("authTitle").textContent;
-  const message = document.getElementById("authMessage");
+
+  const email =
+    document.getElementById("authEmail").value.trim();
+
+  const password =
+    document.getElementById("authPassword").value;
+
+  const title =
+    document.getElementById("authTitle").textContent;
+
+  const message =
+    document.getElementById("authMessage");
+
 
   if (!email || !password) {
-    message.textContent = "Please enter email and password.";
+
+    message.textContent =
+      "Please enter email and password.";
+
     return;
   }
 
-  message.textContent = "Please wait...";
+
+  message.textContent =
+    "Please wait...";
+
 
   try {
+
     let result;
 
+
     if (title === "Create Account") {
-      result = await supabaseClient.auth.signUp({
-        email: email,
-        password: password
-      });
+
+      result =
+        await supabaseClient.auth.signUp({
+          email,
+          password
+        });
+
     } else {
-      result = await supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password
-      });
+
+      result =
+        await supabaseClient.auth.signInWithPassword({
+          email,
+          password
+        });
+
     }
+
 
     if (result.error) {
       throw result.error;
     }
 
+
     message.textContent =
       title === "Create Account"
         ? "Account created successfully!"
         : "Login successful!";
-if (title !== "Create Account") {
-  closeAuth();
 
-  document.querySelector('button[onclick="openAuth(\'login\')"]').style.display = "none";
-  document.querySelector('button[onclick="openAuth(\'signup\')"]').style.display = "none";
 
-  const user = result.data.user;
+    if (title !== "Create Account") {
 
-  const userEmail = document.createElement("span");
-  userEmail.id = "loggedInUser";
-  userEmail.textContent = user.email;
-  userEmail.style.color = "#475569";
-  userEmail.style.fontSize = "14px";
-  userEmail.style.fontWeight = "600";
+      closeAuth();
 
-  const logoutButton = document.createElement("button");
-  logoutButton.textContent = "Logout";
-  logoutButton.className = "secondary-btn";
-  logoutButton.onclick = logoutUser;
-
-  const authButtons = document.querySelector('button[onclick="openAuth(\'login\')"]').parentElement;
-
-  authButtons.appendChild(userEmail);
-  authButtons.appendChild(logoutButton);
-}
+      showLoggedInUser(
+        result.data.user
+      );
+    }
 
   } catch (error) {
-    message.textContent = error.message;
+
+    message.textContent =
+      error.message;
   }
 }
 
+
+function showLoggedInUser(user) {
+
+  const loginButton =
+    document.querySelector(
+      'button[onclick="openAuth(\'login\')"]'
+    );
+
+  const signupButton =
+    document.querySelector(
+      'button[onclick="openAuth(\'signup\')"]'
+    );
+
+
+  if (loginButton) {
+    loginButton.style.display = "none";
+  }
+
+  if (signupButton) {
+    signupButton.style.display = "none";
+  }
+
+
+  const authButtons =
+    document.getElementById("authButtons");
+
+
+  if (!authButtons) return;
+
+
+  if (
+    document.getElementById("loggedInUser")
+  ) {
+    return;
+  }
+
+
+  const userEmail =
+    document.createElement("span");
+
+  userEmail.id =
+    "loggedInUser";
+
+  userEmail.textContent =
+    user.email;
+
+  userEmail.style.color =
+    "#475569";
+
+  userEmail.style.fontSize =
+    "14px";
+
+  userEmail.style.fontWeight =
+    "600";
+
+
+  const logoutButton =
+    document.createElement("button");
+
+  logoutButton.textContent =
+    "Logout";
+
+  logoutButton.className =
+    "secondary-btn";
+
+  logoutButton.onclick =
+    logoutUser;
+
+
+  authButtons.appendChild(
+    userEmail
+  );
+
+  authButtons.appendChild(
+    logoutButton
+  );
+}
+
+
+async function logoutUser() {
+
+  await supabaseClient.auth.signOut();
+
+  location.reload();
+}
+
+
 async function checkLoginState() {
-  const { data } = await supabaseClient.auth.getSession();
+
+  const {
+    data
+  } =
+    await supabaseClient.auth.getSession();
+
 
   if (!data.session) {
     return;
   }
 
-  const loginButton = document.querySelector(
-    'button[onclick="openAuth(\'login\')"]'
+
+  showLoggedInUser(
+    data.session.user
   );
-
-  const signupButton = document.querySelector(
-    'button[onclick="openAuth(\'signup\')"]'
-  );
-
-  if (loginButton) loginButton.style.display = "none";
-  if (signupButton) signupButton.style.display = "none";
-
-  const authButtons =
-    loginButton?.parentElement ||
-    signupButton?.parentElement;
-
-  if (!authButtons) return;
-
-  if (document.getElementById("loggedInUser")) return;
-
-  const userEmail = document.createElement("span");
-  userEmail.id = "loggedInUser";
-  userEmail.textContent = data.session.user.email;
-  userEmail.style.color = "#475569";
-  userEmail.style.fontSize = "14px";
-  userEmail.style.fontWeight = "600";
-
-  const logoutButton = document.createElement("button");
-  logoutButton.textContent = "Logout";
-  logoutButton.className = "secondary-btn";
-
-  logoutButton.onclick = async function () {
-    await supabaseClient.auth.signOut();
-    location.reload();
-  };
-
-  authButtons.appendChild(userEmail);
-  authButtons.appendChild(logoutButton);
 }
 
+
 checkLoginState();
+
+
+/* =====================================================
+   FEEDBACK
+===================================================== */
+
 async function submitFeedback() {
-  const rating = Number(document.getElementById("feedbackRating").value);
-  const message = document.getElementById("feedbackMessage").value.trim();
-  const status = document.getElementById("feedbackStatus");
+
+  const rating =
+    Number(
+      document.getElementById(
+        "feedbackRating"
+      ).value
+    );
+
+  const message =
+    document.getElementById(
+      "feedbackMessage"
+    ).value.trim();
+
+  const status =
+    document.getElementById(
+      "feedbackStatus"
+    );
+
 
   if (!message) {
-    status.textContent = "Please enter your feedback.";
+
+    status.textContent =
+      "Please enter your feedback.";
+
     return;
   }
 
-  status.textContent = "Submitting feedback...";
+
+  status.textContent =
+    "Submitting feedback...";
+
 
   try {
+
     const {
       data: { user },
       error: userError
-    } = await supabaseClient.auth.getUser();
+    } =
+      await supabaseClient.auth.getUser();
+
 
     if (userError || !user) {
-      status.textContent = "Please login to submit feedback.";
+
+      status.textContent =
+        "Please login to submit feedback.";
+
       return;
     }
 
-    const { error } = await supabaseClient
-      .from("feedback")
-      .insert([
-        {
-          user_id: user.id,
-          rating: rating,
-          message: message
-        }
-      ]);
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("feedback")
+        .insert([
+          {
+            user_id: user.id,
+            rating,
+            message
+          }
+        ]);
+
 
     if (error) {
       throw error;
     }
 
-    status.textContent = "✅ Thank you for your feedback!";
 
-    document.getElementById("feedbackMessage").value = "";
+    status.textContent =
+      "✅ Thank you for your feedback!";
+
+
+    document.getElementById(
+      "feedbackMessage"
+    ).value = "";
 
   } catch (error) {
-    console.error("FEEDBACK ERROR:", error);
-    status.textContent = "❌ Could not submit feedback.";
+
+    console.error(
+      "FEEDBACK ERROR:",
+      error
+    );
+
+    status.textContent =
+      "❌ Could not submit feedback.";
   }
 }
-  
+
+
+/* =====================================================
+   GENERATE POST
+===================================================== */
+
 async function generatePost() {
 
-  const topic = document.getElementById("topic").value.trim();
-  const language = document.getElementById("language").value;
-  const tone = document.getElementById("tone").value;
-  const length = document.getElementById("length").value;
-  const audience = document.getElementById("audience").value.trim();
+  const topic =
+    document.getElementById(
+      "topic"
+    ).value.trim();
 
-  const out = document.getElementById("result");
+  const language =
+    document.getElementById(
+      "language"
+    ).value;
+
+  const tone =
+    document.getElementById(
+      "tone"
+    ).value;
+
+  const length =
+    document.getElementById(
+      "length"
+    ).value;
+
+  const audience =
+    document.getElementById(
+      "audience"
+    ).value.trim();
+
+  const out =
+    document.getElementById(
+      "result"
+    );
+
 
   if (!topic) {
-    out.className = "result";
-    out.textContent = "Please enter a topic first.";
+
+    out.className =
+      "result";
+
+    out.textContent =
+      "Please enter a topic first.";
+
     return;
   }
 
-  out.className = "result";
-  out.innerHTML = '<div class="loading">✨ AI is creating your LinkedIn post...</div>';
 
-  const {
-  data: { user },
-  error: userError
-} = await supabaseClient.auth.getUser();
+  out.className =
+    "result";
 
-if (userError || !user) {
-  out.className = "result";
-  out.textContent = "🔐 Please login first to generate posts.";
-  return;
-}
+  out.innerHTML =
+    '<div class="loading">✨ AI is creating your LinkedIn post...</div>';
 
-const { data: usage, error: usageError } = await supabaseClient
-  .from("usage")
-  .select("generations, plan, period_start")
-  .eq("user_id", user.id)
-  .maybeSingle();
 
-if (usageError) {
-  throw usageError;
-}
+  try {
 
-const plan = usage?.plan || "free";
-let generationCount = usage?.generations || 0;
-const generationLimit = plan === "pro" ? 50 : 5;
+    const {
+      data: { user },
+      error: userError
+    } =
+      await supabaseClient.auth.getUser();
 
-const periodStart = usage?.period_start
-  ? new Date(usage.period_start)
-  : new Date();
 
-const now = new Date();
+    if (userError || !user) {
 
-const monthChanged =
-  now.getFullYear() !== periodStart.getFullYear() ||
-  now.getMonth() !== periodStart.getMonth();
+      out.className =
+        "result";
 
-if (monthChanged) {
-  generationCount = 0;
+      out.textContent =
+        "🔐 Please login first to generate posts.";
 
-  const { error: resetError } = await supabaseClient
-    .from("usage")
-    .update({
-      generations: 0,
-      period_start: now.toISOString(),
-      updated_at: now.toISOString()
-    })
-    .eq("user_id", user.id);
-
-  if (resetError) {
-    throw resetError;
-  }
-}
-
-if (generationCount >= generationLimit) {
-  out.className = "result";
-  out.innerHTML = `
-    <div class="empty">
-      🚀 You have reached your ${generationLimit} generations limit.<br><br>
-      ${plan === "free"
-        ? "Upgrade to Pro for 50 generations/month."
-        : "Your Pro generation limit has been reached."}
-    </div>
-  `;
-  return;
-}
-
-try {
- 
-
-    const response = await fetch("/api/generate", {
-
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json"
-      },
-
-      body: JSON.stringify({
-  topic: topic,
-  language: language,
-  tone: tone,
-  length: length,
-  audience: audience,
-  user_id: user.id,
-  access_token: (await supabaseClient.auth.getSession()).data.session?.access_token
-})
-
-    });
-
-    const data = await response.json();
-
-    if (!data.success) {
-      throw new Error(data.error || "AI generation failed");
+      return;
     }
 
- const raw = data.post;
 
-const scoreSection = raw.split("SCORES")[1] || "";
-const bestMatch = scoreSection.match(/BEST POST:\s*POST\s*(\d+)/i);
-const bestPost = bestMatch ? bestMatch[1] : "";
+    const {
+      data: usage,
+      error: usageError
+    } =
+      await supabaseClient
+        .from("usage")
+        .select(
+          "generations, plan, period_start"
+        )
+        .eq(
+          "user_id",
+          user.id
+        )
+        .maybeSingle();
 
-const scores = {};
-const breakdowns = {};
 
-const scoreRegex = /POST\s*(\d+):\s*(\d+)\/100/gi;
-let scoreMatch;
+    if (usageError) {
+      throw usageError;
+    }
 
-while ((scoreMatch = scoreRegex.exec(scoreSection)) !== null) {
-  scores[scoreMatch[1]] = scoreMatch[2];
-}
 
-const breakdownRegex =
-  /POST\s*(\d+):\s*\d+\/100\s*[\r\n]+HOOK:\s*(\d+)\/20\s*[\r\n]+VALUE:\s*(\d+)\/20\s*[\r\n]+READABILITY:\s*(\d+)\/20\s*[\r\n]+ENGAGEMENT:\s*(\d+)\/20\s*[\r\n]+CTA:\s*(\d+)\/20/gi;
+    const plan =
+      usage?.plan || "free";
 
-let breakdownMatch;
+    let generationCount =
+      usage?.generations || 0;
 
-while ((breakdownMatch = breakdownRegex.exec(scoreSection)) !== null) {
-  breakdowns[breakdownMatch[1]] = {
-    hook: breakdownMatch[2],
-    value: breakdownMatch[3],
-    readability: breakdownMatch[4],
-    engagement: breakdownMatch[5],
-    cta: breakdownMatch[6]
-  };
-}
+    const generationLimit =
+      plan === "pro"
+        ? 50
+        : 5;
 
-const postSection = raw.split("SCORES")[0];
-const postRegex = /POST\s*(\d+)\s*([\s\S]*?)(?=\n---\s*\nPOST\s*\d+|$)/gi;
 
-let match;
-let posts = [];
+    const periodStart =
+      usage?.period_start
+        ? new Date(
+            usage.period_start
+          )
+        : new Date();
 
-while ((match = postRegex.exec(postSection)) !== null) {
-  posts.push({
-    number: match[1],
-    text: match[2].trim()
-  });
-}
-out.innerHTML = posts.map(post => `
-<div class="post-card ${post.number === bestPost ? "best-post" : ""}" style="margin-bottom:12px; padding:16px;">
-    <div class="post-header">
-      <strong>POST ${post.number}</strong>
-      <span class="score">${scores[post.number] || "--"}/100</span>
-    </div>
 
-    ${post.number === bestPost ? '<div class="best-badge">🏆 BEST POST</div>' : ""}
+    const now =
+      new Date();
 
-    <div class="post-text">${post.text.replace(/\n/g, "<br>")}</div>
-<div class="score-breakdown">
-  <div><span>Hook</span><strong>${breakdowns[post.number]?.hook || "--"}/20</strong></div>
-  <div><span>Value</span><strong>${breakdowns[post.number]?.value || "--"}/20</strong></div>
-  <div><span>Readability</span><strong>${breakdowns[post.number]?.readability || "--"}/20</strong></div>
-  <div><span>Engagement</span><strong>${breakdowns[post.number]?.engagement || "--"}/20</strong></div>
-  <div><span>CTA</span><strong>${breakdowns[post.number]?.cta || "--"}/20</strong></div>
-</div>
 
-<button onclick="copySinglePost(this.closest('.post-card').querySelector('.post-text').innerText)">
-  📋 Copy Post
-</button>
+    const monthChanged =
+      now.getFullYear() !==
+        periodStart.getFullYear() ||
+      now.getMonth() !==
+        periodStart.getMonth();
 
-<button onclick="saveSinglePost(this.closest('.post-card'))">
-  💾 Save Post
-</button>
 
-<button onclick="improvePost(this.closest('.post-card').querySelector('.post-text').innerText)">
-  ✨ Improve Post
-</button>
-  </div>
-`).join("");
+    if (monthChanged) {
+
+      generationCount = 0;
+
+
+      const {
+        error: resetError
+      } =
+        await supabaseClient
+          .from("usage")
+          .update({
+            generations: 0,
+            period_start:
+              now.toISOString(),
+            updated_at:
+              now.toISOString()
+          })
+          .eq(
+            "user_id",
+            user.id
+          );
+
+
+      if (resetError) {
+        throw resetError;
+      }
+    }
+
+
+    if (
+      generationCount >=
+      generationLimit
+    ) {
+
+      out.className =
+        "result";
+
+      out.innerHTML = `
+        <div class="empty">
+          🚀 You have reached your
+          ${generationLimit}
+          generations limit.
+          <br><br>
+          ${
+            plan === "free"
+              ? "Upgrade to Pro for 50 generations/month."
+              : "Your Pro generation limit has been reached."
+          }
+        </div>
+      `;
+
+      return;
+    }
+
+
+    const session =
+      (
+        await supabaseClient.auth.getSession()
+      ).data.session;
+
+
+    if (!session) {
+
+      throw new Error(
+        "Session not found"
+      );
+    }
+
+
+    /* ================================================
+       IMPORTANT:
+       LOCAL BACKEND
+    ================================================= */
+
+    const response =
+      await fetch(
+        `${API_BASE_URL}/api/generate`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+
+            topic,
+
+            language,
+
+            tone,
+
+            length,
+
+            audience,
+
+            user_id:
+              user.id,
+
+            access_token:
+              session.access_token
+
+          })
+        }
+      );
+
+
+    if (!response.ok) {
+
+      const errorText =
+        await response.text();
+
+      throw new Error(
+        `Backend error ${response.status}: ${errorText}`
+      );
+    }
+
+
+    const data =
+      await response.json();
+
+
+    if (!data.success) {
+
+      throw new Error(
+        data.error ||
+        "AI generation failed"
+      );
+    }
+
+
+    const raw =
+      data.post || "";
+
+
+    const scoreSection =
+      raw.split("SCORES")[1] ||
+      "";
+
+    const bestMatch =
+      scoreSection.match(
+        /BEST POST:\s*POST\s*(\d+)/i
+      );
+
+
+    const bestPost =
+      bestMatch
+        ? bestMatch[1]
+        : "";
+
+
+    const scores = {};
+
+    const breakdowns = {};
+
+
+    const scoreRegex =
+      /POST\s*(\d+):\s*(\d+)\/100/gi;
+
+
+    let scoreMatch;
+
+
+    while (
+      (
+        scoreMatch =
+          scoreRegex.exec(
+            scoreSection
+          )
+      ) !== null
+    ) {
+
+      scores[
+        scoreMatch[1]
+      ] =
+        scoreMatch[2];
+    }
+
+
+    const breakdownRegex =
+      /POST\s*(\d+):\s*\d+\/100\s*[\r\n]+HOOK:\s*(\d+)\/20\s*[\r\n]+VALUE:\s*(\d+)\/20\s*[\r\n]+READABILITY:\s*(\d+)\/20\s*[\r\n]+ENGAGEMENT:\s*(\d+)\/20\s*[\r\n]+CTA:\s*(\d+)\/20/gi;
+
+
+    let breakdownMatch;
+
+
+    while (
+      (
+        breakdownMatch =
+          breakdownRegex.exec(
+            scoreSection
+          )
+      ) !== null
+    ) {
+
+      breakdowns[
+        breakdownMatch[1]
+      ] = {
+
+        hook:
+          breakdownMatch[2],
+
+        value:
+          breakdownMatch[3],
+
+        readability:
+          breakdownMatch[4],
+
+        engagement:
+          breakdownMatch[5],
+
+        cta:
+          breakdownMatch[6]
+
+      };
+    }
+
+
+    const postSection =
+      raw.split("SCORES")[0];
+
+
+    const postRegex =
+      /POST\s*(\d+)\s*([\s\S]*?)(?=\n---\s*\nPOST\s*\d+|$)/gi;
+
+
+    let match;
+
+    const posts = [];
+
+
+    while (
+      (
+        match =
+          postRegex.exec(
+            postSection
+          )
+      ) !== null
+    ) {
+
+      posts.push({
+
+        number:
+          match[1],
+
+        text:
+          match[2].trim()
+
+      });
+    }
+
+
+    if (!posts.length) {
+
+      throw new Error(
+        "No posts were returned by AI."
+      );
+    }
+
+
+    out.innerHTML =
+      posts
+        .map(post => `
+
+          <div
+            class="post-card ${
+              post.number === bestPost
+                ? "best-post"
+                : ""
+            }"
+          >
+
+            <div class="post-header">
+
+              <strong>
+                POST ${post.number}
+              </strong>
+
+              <span class="score">
+                ${
+                  scores[
+                    post.number
+                  ] || "--"
+                }/100
+              </span>
+
+            </div>
+
+
+            ${
+              post.number === bestPost
+                ? `
+                  <div class="best-badge">
+                    🏆 BEST POST
+                  </div>
+                `
+                : ""
+            }
+
+
+            <div class="post-text">
+              ${escapeHTML(
+                post.text
+              ).replace(
+                /\n/g,
+                "<br>"
+              )}
+            </div>
+
+
+            <div class="score-breakdown">
+
+              <div>
+                <span>
+                  Hook
+                </span>
+
+                <strong>
+                  ${
+                    breakdowns[
+                      post.number
+                    ]?.hook ||
+                    "--"
+                  }/20
+                </strong>
+              </div>
+
+
+              <div>
+                <span>
+                  Value
+                </span>
+
+                <strong>
+                  ${
+                    breakdowns[
+                      post.number
+                    ]?.value ||
+                    "--"
+                  }/20
+                </strong>
+              </div>
+
+
+              <div>
+                <span>
+                  Readability
+                </span>
+
+                <strong>
+                  ${
+                    breakdowns[
+                      post.number
+                    ]?.readability ||
+                    "--"
+                  }/20
+                </strong>
+              </div>
+
+
+              <div>
+                <span>
+                  Engagement
+                </span>
+
+                <strong>
+                  ${
+                    breakdowns[
+                      post.number
+                    ]?.engagement ||
+                    "--"
+                  }/20
+                </strong>
+              </div>
+
+
+              <div>
+                <span>
+                  CTA
+                </span>
+
+                <strong>
+                  ${
+                    breakdowns[
+                      post.number
+                    ]?.cta ||
+                    "--"
+                  }/20
+                </strong>
+              </div>
+
+            </div>
+
+
+            <button
+              onclick="copySinglePost(
+                this.closest('.post-card')
+                .querySelector('.post-text')
+                .innerText
+              )"
+            >
+              📋 Copy Post
+            </button>
+
+
+            <button
+              onclick="saveSinglePost(
+                this.closest('.post-card')
+              )"
+            >
+              💾 Save Post
+            </button>
+
+
+            <button
+              onclick="improvePost(
+                this.closest('.post-card')
+                .querySelector('.post-text')
+                .innerText
+              )"
+            >
+              ✨ Improve Post
+            </button>
+
+          </div>
+
+        `)
+        .join("");
+
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "GENERATE ERROR:",
+      error
+    );
 
-    out.textContent =
-      "❌ AI connection failed.\n\n" +
-      "Please make sure the PostMitra AI server is running.";
 
+    out.className =
+      "result";
+
+
+    out.innerHTML = `
+      <div class="empty">
+
+        ❌ AI connection failed.
+
+        <br><br>
+
+        ${
+          escapeHTML(
+            error.message ||
+            "Unknown error"
+          )
+        }
+
+      </div>
+    `;
   }
-
 }
 
 
-async function improvePost(postText) {
-  const result = document.getElementById("result");
+/* =====================================================
+   IMPROVE POST
+===================================================== */
+
+async function improvePost(
+  postText
+) {
+
+  const result =
+    document.getElementById(
+      "result"
+    );
+
 
   result.innerHTML =
     '<div class="loading">✨ AI is improving your post...</div>';
-    const user = (await supabaseClient.auth.getUser()).data.user;
 
-  if (!user) {
-    result.innerHTML = `
-      <div class="empty">
-        🔐 Please login to use Improve Post.
-      </div>
-    `;
-    return;
-  }
-
-  const { data: usage, error: usageError } = await supabaseClient
-    .from("usage")
-    .select("plan")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (usageError) {
-    console.error(usageError);
-    result.innerHTML = `
-      <div class="empty">
-        ❌ Unable to check your Pro plan.
-      </div>
-    `;
-    return;
-  }
-
-  if (usage?.plan !== "pro") {
-    result.innerHTML = `
-      <div class="empty">
-        🚀 Improve Post is a Pro feature.<br><br>
-        Upgrade to Pro to use AI Improve.
-        <br><br>
-        <button onclick="upgradeToPro()" class="primary-btn">
-          Upgrade to Pro
-        </button>
-      </div>
-    `;
-    return;
-  }
 
   try {
-    const user = (await supabaseClient.auth.getUser()).data.user;
 
-if (!user) {
-  throw new Error("Please login first");
-}
+    const user =
+      (
+        await supabaseClient.auth.getUser()
+      ).data.user;
 
-const {
-  data: { session }
-} = await supabaseClient.auth.getSession();
 
-if (!session) {
-  throw new Error("Session not found");
-}
+    if (!user) {
 
-const response = await fetch("/api/improve", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    post: postText,
-    user_id: user.id,
-    access_token: session.access_token
-  })
-});
+      result.innerHTML = `
+        <div class="empty">
+          🔐 Please login to use Improve Post.
+        </div>
+      `;
 
-    const data = await response.json();
+      return;
+    }
+
+
+    const {
+      data: usage,
+      error: usageError
+    } =
+      await supabaseClient
+        .from("usage")
+        .select("plan")
+        .eq(
+          "user_id",
+          user.id
+        )
+        .maybeSingle();
+
+
+    if (usageError) {
+      throw usageError;
+    }
+
+
+    if (
+      usage?.plan !== "pro"
+    ) {
+
+      result.innerHTML = `
+        <div class="empty">
+
+          🚀 Improve Post is a Pro feature.
+
+          <br><br>
+
+          Upgrade to Pro to use AI Improve.
+
+          <br><br>
+
+          <button
+            onclick="upgradeToPro()"
+            class="primary-btn"
+          >
+            Upgrade to Pro
+          </button>
+
+        </div>
+      `;
+
+      return;
+    }
+
+
+    const session =
+      (
+        await supabaseClient.auth.getSession()
+      ).data.session;
+
+
+    if (!session) {
+      throw new Error(
+        "Session not found"
+      );
+    }
+
+
+    const response =
+      await fetch(
+        `${API_BASE_URL}/api/improve`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+
+            post:
+              postText,
+
+            user_id:
+              user.id,
+
+            access_token:
+              session.access_token
+
+          })
+        }
+      );
+
+
+    if (!response.ok) {
+
+      const errorText =
+        await response.text();
+
+      throw new Error(
+        `Backend error ${response.status}: ${errorText}`
+      );
+    }
+
+
+    const data =
+      await response.json();
+
 
     if (!data.success) {
-      throw new Error(data.error || "Improvement failed");
+
+      throw new Error(
+        data.error ||
+        "Improvement failed"
+      );
     }
 
+
     result.innerHTML = `
+
       <div class="post-card best-post">
+
         <div class="post-header">
-          <strong>✨ IMPROVED POST</strong>
+
+          <strong>
+            ✨ IMPROVED POST
+          </strong>
+
         </div>
 
-        <div class="post-text">${data.post.replace(/\n/g, "<br>")}</div>
 
-        <button onclick="copyImprovedPost()">
+        <div class="post-text">
+          ${escapeHTML(
+            data.post
+          ).replace(
+            /\n/g,
+            "<br>"
+          )}
+        </div>
+
+
+        <button
+          onclick="copyImprovedPost()"
+        >
           📋 Copy Improved Post
         </button>
-<button onclick="saveImprovedPost()">
-  💾 Save Improved Post
-</button>
+
+
+        <button
+          onclick="saveImprovedPost()"
+        >
+          💾 Save Improved Post
+        </button>
+
       </div>
+
     `;
 
   } catch (error) {
-    console.error(error);
-    result.textContent = "❌ Could not improve the post.";
+
+    console.error(
+      "IMPROVE ERROR:",
+      error
+    );
+
+
+    result.innerHTML = `
+      <div class="empty">
+        ❌ Could not improve the post.
+        <br><br>
+        ${escapeHTML(
+          error.message ||
+          ""
+        )}
+      </div>
+    `;
   }
 }
+
+
+/* =====================================================
+   COPY
+===================================================== */
+
 function copyImprovedPost() {
-  const text = document.querySelector("#result .post-text")?.innerText;
+
+  const text =
+    document.querySelector(
+      "#result .post-text"
+    )?.innerText;
+
 
   if (!text) {
-    alert("Improved post not found.");
+
+    alert(
+      "Improved post not found."
+    );
+
     return;
   }
 
-  navigator.clipboard.writeText(text);
 
-  alert("✅ Improved post copied!");
+  navigator.clipboard
+    .writeText(text);
+
+
+  alert(
+    "✅ Improved post copied!"
+  );
 }
-function saveImprovedPost() {
-  const text = document.querySelector("#result .post-card.best-post .post-text")?.innerText;
 
-  if (!text) {
-    alert("Improved post not found.");
-    return;
-  }
 
-  let savedPosts = JSON.parse(localStorage.getItem("savedPosts") || "[]");
+function copySinglePost(
+  postText
+) {
 
-  savedPosts.push({
-    text: text,
-    date: new Date().toLocaleString()
-  });
+  const textarea =
+    document.createElement(
+      "textarea"
+    );
 
-  localStorage.setItem("savedPosts", JSON.stringify(savedPosts));
 
-  alert("✅ Improved post saved!");
-}
-function copySinglePost(postText) {
+  textarea.value =
+    postText;
 
-  const textarea = document.createElement("textarea");
-  textarea.value = postText;
 
-  textarea.style.position = "fixed";
-  textarea.style.opacity = "0";
+  textarea.style.position =
+    "fixed";
 
-  document.body.appendChild(textarea);
+  textarea.style.opacity =
+    "0";
+
+
+  document.body.appendChild(
+    textarea
+  );
+
 
   textarea.focus();
+
   textarea.select();
 
-  try {
-    document.execCommand("copy");
-    alert("✅ Post copied!");
-  } catch (error) {
-    alert("❌ Copy failed. Please copy manually.");
-  }
-
-  document.body.removeChild(textarea);
-}
-async function saveSinglePost(postCard) {
-
-  const text = postCard.querySelector(".post-text")?.innerText;
-
-  if (!text) {
-    alert("❌ Post not found.");
-    return;
-  }
 
   try {
 
-    const {
-      data: { user },
-      error: userError
-    } = await supabaseClient.auth.getUser();
+    document.execCommand(
+      "copy"
+    );
 
-    if (userError || !user) {
-      alert("Please login first.");
-      return;
-    }
-
-    const { error } = await supabaseClient
-      .from("saved_posts")
-      .insert([
-        {
-          user_id: user.id,
-          post: text
-        }
-      ]);
-
-    if (error) {
-      throw error;
-    }
-
-    alert("✅ Post saved successfully!");
+    alert(
+      "✅ Post copied!"
+    );
 
   } catch (error) {
 
-    console.error("SAVE SINGLE POST ERROR:", error);
-
-    alert("❌ Could not save post: " + error.message);
-
+    alert(
+      "❌ Copy failed. Please copy manually."
+    );
   }
+
+
+  document.body.removeChild(
+    textarea
+  );
 }
 
-async function savePost(postText, postNumber, score) {
-  try {
-    const {
-      data: { user },
-      error: userError
-    } = await supabaseClient.auth.getUser();
 
-    if (userError || !user) {
-      alert("Please login first.");
-      return;
-    }
-
-    const { error } = await supabaseClient
-      .from("saved_posts")
-      .insert([
-        {
-          user_id: user.id,
-          post: postText
-        }
-      ]);
-
-    if (error) {
-      throw error;
-    }
-
-    alert("✅ Post saved successfully!");
-
-  } catch (error) {
-    console.error("SAVE POST ERROR:", error);
-    alert("❌ Could not save post: " + error.message);
-  }
-}
 function copyPost() {
 
-  const postCards = document.querySelectorAll("#result .post-card");
+  const postCards =
+    document.querySelectorAll(
+      "#result .post-card"
+    );
+
 
   if (!postCards.length) {
-    alert("Generate a post first.");
+
+    alert(
+      "Generate a post first."
+    );
+
     return;
   }
 
-  const text = postCards[0].querySelector(".post-text")?.innerText;
+
+  const text =
+    postCards[0]
+      .querySelector(
+        ".post-text"
+      )
+      ?.innerText;
+
 
   if (!text) {
-    alert("Post not found.");
+
+    alert(
+      "Post not found."
+    );
+
     return;
   }
 
-  const textarea = document.createElement("textarea");
-  textarea.value = text;
-  textarea.style.position = "fixed";
-  textarea.style.opacity = "0";
 
-  document.body.appendChild(textarea);
-  textarea.focus();
-  textarea.select();
+  copySinglePost(text);
+}
 
-  try {
-    document.execCommand("copy");
-    alert("✅ Post copied!");
-  } catch (error) {
-    alert("❌ Copy failed. Please copy manually.");
+
+/* =====================================================
+   SAVE
+===================================================== */
+
+async function saveSinglePost(
+  postCard
+) {
+
+  const text =
+    postCard
+      .querySelector(
+        ".post-text"
+      )
+      ?.innerText;
+
+
+  if (!text) {
+
+    alert(
+      "❌ Post not found."
+    );
+
+    return;
   }
 
-  document.body.removeChild(textarea);
-}
-function copySavedPost(postText) {
-
-  const textarea = document.createElement("textarea");
-  textarea.value = postText;
-
-  textarea.style.position = "fixed";
-  textarea.style.opacity = "0";
-
-  document.body.appendChild(textarea);
-
-  textarea.focus();
-  textarea.select();
-
-  try {
-    document.execCommand("copy");
-    alert("✅ Saved post copied!");
-  } catch (error) {
-    alert("❌ Copy failed.");
-  }
-
-  document.body.removeChild(textarea);
-}
-async function deleteSavedPost(postId) {
-
-  console.log("DELETE POST ID:", postId);
 
   try {
 
     const {
       data: { user },
       error: userError
-    } = await supabaseClient.auth.getUser();
+    } =
+      await supabaseClient.auth.getUser();
+
 
     if (userError || !user) {
-      alert("Please login first.");
+
+      alert(
+        "Please login first."
+      );
+
       return;
     }
 
-    const { data: deletedRows, error } = await supabaseClient
-  .from("saved_posts")
-  .delete()
-  .eq("id", Number(postId))
-  .select("id");
 
-if (error) {
-  throw error;
-}
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("saved_posts")
+        .insert([
+          {
+            user_id:
+              user.id,
 
-console.log("DELETED ROW:", deletedRows);
+            post:
+              text
+          }
+        ]);
 
-if (!deletedRows || deletedRows.length === 0) {
-  alert("❌ No database row was deleted.");
-  return;
-}
-
-alert("🗑️ Post deleted!");
-showSavedPosts();
-      
 
     if (error) {
       throw error;
     }
 
-    alert("🗑️ Post deleted!");
 
-    showSavedPosts();
+    alert(
+      "✅ Post saved successfully!"
+    );
 
   } catch (error) {
 
-    console.error("DELETE SAVED POST ERROR:", error);
+    console.error(
+      "SAVE SINGLE POST ERROR:",
+      error
+    );
 
-    alert("❌ Could not delete post: " + error.message);
-
+    alert(
+      "❌ Could not save post: " +
+      error.message
+    );
   }
 }
+
+
+async function saveImprovedPost() {
+
+  const text =
+    document.querySelector(
+      "#result .post-card.best-post .post-text"
+    )?.innerText;
+
+
+  if (!text) {
+
+    alert(
+      "Improved post not found."
+    );
+
+    return;
+  }
+
+
+  try {
+
+    const {
+      data: { user },
+      error: userError
+    } =
+      await supabaseClient.auth.getUser();
+
+
+    if (userError || !user) {
+
+      alert(
+        "Please login first."
+      );
+
+      return;
+    }
+
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("saved_posts")
+        .insert([
+          {
+            user_id:
+              user.id,
+
+            post:
+              text
+          }
+        ]);
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    alert(
+      "✅ Improved post saved!"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "SAVE IMPROVED POST ERROR:",
+      error
+    );
+
+    alert(
+      "❌ Could not save post: " +
+      error.message
+    );
+  }
+}
+
+
+/* =====================================================
+   SAVED POSTS
+===================================================== */
 
 async function showSavedPosts() {
 
-  const result = document.getElementById("result");
+  const result =
+    document.getElementById(
+      "result"
+    );
+
 
   try {
 
     const {
       data: { user },
       error: userError
-    } = await supabaseClient.auth.getUser();
+    } =
+      await supabaseClient.auth.getUser();
+
 
     if (userError || !user) {
+
       result.innerHTML = `
         <div class="empty">
           🔐 Please login to view saved posts.
         </div>
       `;
+
       return;
     }
 
-    const { data: savedPosts, error } = await supabaseClient
-      .from("saved_posts")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+
+    const {
+      data: savedPosts,
+      error
+    } =
+      await supabaseClient
+        .from("saved_posts")
+        .select("*")
+        .eq(
+          "user_id",
+          user.id
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false
+          }
+        );
+
 
     if (error) {
       throw error;
     }
 
-    if (!savedPosts || savedPosts.length === 0) {
+
+    if (
+      !savedPosts ||
+      savedPosts.length === 0
+    ) {
+
       result.innerHTML = `
         <div class="empty">
           💾 No saved posts yet.
         </div>
       `;
+
       return;
     }
 
+
     result.innerHTML = `
-      <h2>💾 Saved Posts</h2>
 
-      ${savedPosts.map(post => `
-        <div class="post-card" style="margin-bottom:15px; padding:16px;">
+      <h2>
+        💾 Saved Posts
+      </h2>
 
-          <div class="post-header">
-            <strong>Saved Post</strong>
-          </div>
+      ${
+        savedPosts
+          .map(
+            post => `
 
-          <div class="post-text">
-            ${post.post.replace(/\n/g, "<br>")}
-          </div>
+              <div
+                class="post-card"
+              >
 
-          <p class="hint">
-            Saved: ${new Date(post.created_at).toLocaleString()}
-          </p>
+                <div class="post-header">
 
-          <button onclick="copySavedPost(this.closest('.post-card').querySelector('.post-text').innerText)">
-            📋 Copy
-          </button>
+                  <strong>
+                    Saved Post
+                  </strong>
 
-          <button onclick="deleteSavedPost('${post.id}')">
-            🗑️ Delete
-          </button>
+                </div>
 
-        </div>
-      `).join("")}
+
+                <div class="post-text">
+                  ${escapeHTML(
+                    post.post
+                  ).replace(
+                    /\n/g,
+                    "<br>"
+                  )}
+                </div>
+
+
+                <p class="hint">
+
+                  Saved:
+                  ${
+                    new Date(
+                      post.created_at
+                    ).toLocaleString()
+                  }
+
+                </p>
+
+
+                <button
+                  onclick="copySavedPost(
+                    this.closest('.post-card')
+                    .querySelector('.post-text')
+                    .innerText
+                  )"
+                >
+                  📋 Copy
+                </button>
+
+
+                <button
+                  onclick="deleteSavedPost(
+                    '${post.id}'
+                  )"
+                >
+                  🗑️ Delete
+                </button>
+
+              </div>
+
+            `
+          )
+          .join("")
+      }
+
     `;
 
   } catch (error) {
 
-    console.error("SHOW SAVED POSTS ERROR:", error);
+    console.error(
+      "SHOW SAVED POSTS ERROR:",
+      error
+    );
+
 
     result.innerHTML = `
       <div class="empty">
@@ -1325,193 +2369,549 @@ async function showSavedPosts() {
   }
 }
 
+
+function copySavedPost(
+  postText
+) {
+
+  copySinglePost(
+    postText
+  );
+}
+
+
+async function deleteSavedPost(
+  postId
+) {
+
+  try {
+
+    const {
+      data: { user },
+      error: userError
+    } =
+      await supabaseClient.auth.getUser();
+
+
+    if (userError || !user) {
+
+      alert(
+        "Please login first."
+      );
+
+      return;
+    }
+
+
+    const {
+      data: deletedRows,
+      error
+    } =
+      await supabaseClient
+        .from("saved_posts")
+        .delete()
+        .eq(
+          "id",
+          Number(postId)
+        )
+        .select("id");
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    if (
+      !deletedRows ||
+      deletedRows.length === 0
+    ) {
+
+      alert(
+        "❌ No database row was deleted."
+      );
+
+      return;
+    }
+
+
+    alert(
+      "🗑️ Post deleted!"
+    );
+
+
+    showSavedPosts();
+
+  } catch (error) {
+
+    console.error(
+      "DELETE SAVED POST ERROR:",
+      error
+    );
+
+
+    alert(
+      "❌ Could not delete post: " +
+      error.message
+    );
+  }
+}
+
+
+/* =====================================================
+   CLEAR
+===================================================== */
+
 function clearPost() {
 
-  document.getElementById("topic").value = "";
-  document.getElementById("audience").value = "";
+  document.getElementById(
+    "topic"
+  ).value = "";
 
-  const out = document.getElementById("result");
 
-  out.className = "result empty";
+  document.getElementById(
+    "audience"
+  ).value = "";
+
+
+  const out =
+    document.getElementById(
+      "result"
+    );
+
+
+  out.className =
+    "result empty";
+
 
   out.textContent =
     "Your generated post will appear here.\nEnter a topic and click “Generate AI post”.";
-
 }
+
+
+/* =====================================================
+   RAZORPAY PRO
+===================================================== */
+
 async function upgradeToPro() {
+
   try {
-   const user = (await supabaseClient.auth.getUser()).data.user;
 
-if (!user) {
-  alert("Please login before upgrading to Pro.");
-  return;
-}
+    const user =
+      (
+        await supabaseClient.auth.getUser()
+      ).data.user;
 
-const response = await fetch("/api/create-subscription", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    user_id: user.id,
-    referral_code: localStorage.getItem("postmitra_ref") || ""
-  })
-});
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.error || "Subscription creation failed");
-    }
-
-    const options = {
-      key: "rzp_live_ThQSMU8HBqgEBL",
-      subscription_id: data.subscription_id,
-      name: "PostMitra AI",
-      description: "PostMitra AI Pro - ₹199/month",
-      image: "",
-     handler: async function (response) {
-  try {
-    const user = (await supabaseClient.auth.getUser()).data.user;
 
     if (!user) {
-      throw new Error("Please login before upgrading to Pro.");
+
+      alert(
+        "Please login before upgrading to Pro."
+      );
+
+      return;
     }
 
-    const verifyResponse = await fetch("/api/verify-payment", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        razorpay_payment_id: response.razorpay_payment_id,
-        razorpay_subscription_id: response.razorpay_subscription_id,
-        razorpay_signature: response.razorpay_signature,
-        user_id: user.id
-      })
-    });
 
-    const verifyData = await verifyResponse.json();
+    const response =
+      await fetch(
+        "/api/create-subscription",
+        {
+          method: "POST",
 
-    if (!verifyResponse.ok || !verifyData.success) {
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+
+            user_id:
+              user.id,
+
+            referral_code:
+              localStorage.getItem(
+                "postmitra_ref"
+              ) || ""
+
+          })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      !response.ok ||
+      !data.success
+    ) {
+
       throw new Error(
-        verifyData.error || "Payment verification failed"
+        data.error ||
+        "Subscription creation failed"
       );
     }
 
-    alert("🎉 Payment verified successfully!");
 
-  } catch (error) {
-    console.error("PAYMENT VERIFICATION ERROR:", error);
-    alert("❌ Verification failed: " + error.message);
-  }
-},
+    const options = {
+
+      key:
+        "rzp_live_ThQSMU8HBqgEBL",
+
+      subscription_id:
+        data.subscription_id,
+
+      name:
+        "PostMitra AI",
+
+      description:
+        "PostMitra AI Pro - ₹199/month",
+
+      image:
+        "",
+
+
+      handler:
+        async function(response) {
+
+          try {
+
+            const user =
+              (
+                await supabaseClient.auth.getUser()
+              ).data.user;
+
+
+            if (!user) {
+
+              throw new Error(
+                "Please login before upgrading to Pro."
+              );
+            }
+
+
+            const verifyResponse =
+              await fetch(
+                "/api/verify-payment",
+                {
+                  method: "POST",
+
+                  headers: {
+                    "Content-Type":
+                      "application/json"
+                  },
+
+                  body: JSON.stringify({
+
+                    razorpay_payment_id:
+                      response.razorpay_payment_id,
+
+                    razorpay_subscription_id:
+                      response.razorpay_subscription_id,
+
+                    razorpay_signature:
+                      response.razorpay_signature,
+
+                    user_id:
+                      user.id
+
+                  })
+                }
+              );
+
+
+            const verifyData =
+              await verifyResponse.json();
+
+
+            if (
+              !verifyResponse.ok ||
+              !verifyData.success
+            ) {
+
+              throw new Error(
+                verifyData.error ||
+                "Payment verification failed"
+              );
+            }
+
+
+            alert(
+              "🎉 Payment verified successfully!"
+            );
+
+          } catch (error) {
+
+            console.error(
+              "PAYMENT VERIFICATION ERROR:",
+              error
+            );
+
+            alert(
+              "❌ Verification failed: " +
+              error.message
+            );
+          }
+        },
+
+
       prefill: {
+
         name: "",
-        email: ""
+
+        email: user.email || ""
+
       },
+
+
       theme: {
-        color: "#7c3aed"
+
+        color:
+          "#7c3aed"
+
       }
+
     };
 
-    const razorpay = new Razorpay(options);
+
+    const razorpay =
+      new Razorpay(
+        options
+      );
+
+
     razorpay.open();
 
   } catch (error) {
-    console.error("UPGRADE ERROR:", error);
-    alert("❌ Upgrade failed: " + error.message);
+
+    console.error(
+      "UPGRADE ERROR:",
+      error
+    );
+
+
+    alert(
+      "❌ Upgrade failed: " +
+      error.message
+    );
   }
 }
-  
+
+
+/* =====================================================
+   HTML ESCAPE
+===================================================== */
+
+function escapeHTML(
+  value
+) {
+
+  return String(value || "")
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+}
+
+
+/* =====================================================
+   REFERRAL
+===================================================== */
+
+(function() {
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const ref =
+    params.get("ref");
+
+
+  if (ref) {
+
+    localStorage.setItem(
+      "postmitra_ref",
+      ref
+    );
+  }
+
+})();
+
 </script>
 
-<div id="authModal" style="
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(15,23,42,.55);
-  z-index:9999;
-  align-items:center;
-  justify-content:center;
-">
 
-  <div style="
-    background:white;
-    width:90%;
-    max-width:400px;
-    padding:30px;
-    border-radius:18px;
-    box-shadow:0 20px 50px rgba(0,0,0,.2);
-  ">
+<!-- AUTH MODAL -->
 
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h2 id="authTitle">Login</h2>
+<div
+  id="authModal"
+  style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,.55);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+  "
+>
 
-      <button onclick="closeAuth()" style="
-        border:none;
-        background:none;
-        font-size:24px;
-        cursor:pointer;
-      ">×</button>
+  <div
+    style="
+      background:white;
+      width:90%;
+      max-width:400px;
+      padding:30px;
+      border-radius:18px;
+      box-shadow:0 20px 50px rgba(0,0,0,.2);
+    "
+  >
+
+    <div
+      style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+      "
+    >
+
+      <h2 id="authTitle">
+        Login
+      </h2>
+
+
+      <button
+        onclick="closeAuth()"
+        style="
+          border:none;
+          background:none;
+          font-size:24px;
+          cursor:pointer;
+        "
+      >
+        ×
+      </button>
+
     </div>
+
 
     <input
       id="authEmail"
       type="email"
       placeholder="Email"
-      style="width:100%; margin-top:20px; padding:12px;"
+      style="
+        width:100%;
+        margin-top:20px;
+        padding:12px;
+      "
     >
+
 
     <input
       id="authPassword"
       type="password"
       placeholder="Password"
-      style="width:100%; margin-top:12px; padding:12px;"
+      style="
+        width:100%;
+        margin-top:12px;
+        padding:12px;
+      "
     >
+
 
     <button
       id="authSubmit"
       onclick="submitAuth()"
       class="primary-btn"
-      style="width:100%; margin-top:18px;"
+      style="
+        width:100%;
+        margin-top:18px;
+      "
     >
       Login
     </button>
 
-    <p id="authMessage" style="
-      margin-top:15px;
-      text-align:center;
-      font-size:14px;
-    "></p>
+
+    <p
+      id="authMessage"
+      style="
+        margin-top:15px;
+        text-align:center;
+        font-size:14px;
+      "
+    ></p>
 
   </div>
+
 </div>
 
-<footer style="text-align:center; padding:30px 15px; margin-top:40px; color:#64748b;">
-  <a href="/privacy.html" style="margin:0 10px;">Privacy Policy</a>
-  <a href="/terms.html" style="margin:0 10px;">Terms & Conditions</a>
-  <a href="/refund.html" style="margin:0 10px;">Refund & Cancellation</a>
+
+<footer
+  style="
+    text-align:center;
+    padding:30px 15px;
+    margin-top:40px;
+    color:#64748b;
+  "
+>
+
+  <a
+    href="/privacy.html"
+    style="margin:0 10px;"
+  >
+    Privacy Policy
+  </a>
+
+  <a
+    href="/terms.html"
+    style="margin:0 10px;"
+  >
+    Terms & Conditions
+  </a>
+
+  <a
+    href="/refund.html"
+    style="margin:0 10px;"
+  >
+    Refund & Cancellation
+  </a>
+
 
   <div style="margin-top:15px;">
+
     📩 Contact Support:
-    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=postmitra.support@gmail.com"
-   target="_blank"
-   style="margin-left:5px;">
+
+    <a
+      href="https://mail.google.com/mail/?view=cm&fs=1&to=postmitra.support@gmail.com"
+      target="_blank"
+      style="margin-left:5px;"
+    >
       Email Us
     </a>
-  </div>
-</footer>
-<script>
-(function () {
-    const params = new URLSearchParams(window.location.search);
-    const ref = params.get("ref");
 
-    if (ref) {
-        localStorage.setItem("postmitra_ref", ref);
-    }
-})();
-</script>
-  
+  </div>
+
+</footer>
+
 </body>
 </html>
+```
