@@ -66,7 +66,7 @@ async function callAI(prompt) {
 // GENERATE POSTS
 // ======================================================
 
-app.post("/generate", async (req, res) => {
+app.post("/api/generate", async (req, res) => {
   try {
     const {
       topic,
@@ -626,7 +626,7 @@ Do not mention AI.
 // IMPROVE / HUMANIZE POST
 // ======================================================
 
-app.post("/improve", async (req, res) => {
+app.post("/api/improve", async (req, res) => {
   try {
     const { post } = req.body;
 
