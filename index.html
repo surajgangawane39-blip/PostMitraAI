@@ -243,30 +243,28 @@
       border: 1px solid #dbe2ea;
     }
 
+    /* SCORE BREAKDOWN - COMPACT */
     .score-breakdown {
       margin: 14px 0 16px;
-      padding: 12px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
+      padding: 0;
+      background: transparent;
+      border: none;
     }
 
     .score-breakdown div {
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 9px;
-      padding: 9px 6px;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      padding: 2px 0;
+      background: transparent;
+      border: none;
     }
 
     .score-breakdown span {
-      display: block;
-      font-size: 11px;
+      display: inline-block;
+      width: 115px;
+      font-size: 14px;
       color: #64748b;
-      margin-bottom: 4px;
+      margin: 0;
     }
 
     .score-breakdown strong {
@@ -295,10 +293,6 @@
     }
 
     @media (max-width: 600px) {
-      .score-breakdown {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
       header {
         justify-content: center;
       }
