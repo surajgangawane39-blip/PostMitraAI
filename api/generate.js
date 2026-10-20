@@ -17,158 +17,151 @@ export default async function handler(req, res) {
       access_token
     } = req.body;
 
-    if (!topic || !user_id || !access_token) {
+    if (!topic) {
       return res.status(400).json({
         success: false,
-        error: "Missing required data"
+        error: "Missing required topic"
       });
     }
 
-    // Verify logged-in Supabase user
-    const userResponse = await fetch(
-      `${process.env.SUPABASE_URL}/auth/v1/user`,
-      {
-        headers: {
-          "apikey": process.env.SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${access_token}`
-        }
-      }
-    );
+    const isGuest = !user_id || !access_token || user_id === "guest";
 
-    if (!userResponse.ok) {
-      return res.status(401).json({
-        success: false,
-        error: "Unauthorized"
-      });
-    }
+    let generationCount = 0;
+    let plan = "free";
 
-    const authUser = await userResponse.json();
-
-    if (authUser.id !== user_id) {
-      return res.status(401).json({
-        success: false,
-        error: "User verification failed"
-      });
-    }
-
-    // Get usage + plan
-    const usageResponse = await fetch(
-      `${process.env.SUPABASE_URL}/rest/v1/usage?user_id=eq.${encodeURIComponent(
-        user_id
-      )}&select=generations,plan,period_start`,
-      {
-        headers: {
-          "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY,
-          "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
-        }
-      }
-    );
-
-    if (!usageResponse.ok) {
-      const usageError = await usageResponse.text();
-      console.error("USAGE ERROR:", usageError);
-
-      throw new Error(`Unable to check usage: ${usageError}`);
-    }
-
-    const usageData = await usageResponse.json();
-    let usage = usageData?.[0];
-
-    // Create usage record automatically for a new user
-    if (!usage) {
-      const now = new Date().toISOString();
-
-      const createUsageResponse = await fetch(
-        `${process.env.SUPABASE_URL}/rest/v1/usage`,
+    // जर युझर लॉगिन असेल, तरच Supabase मध्ये व्हेरिफाय करा आणि लिमिट तपासा
+    if (!isGuest) {
+      const userResponse = await fetch(
+        `${process.env.SUPABASE_URL}/auth/v1/user`,
         {
-          method: "POST",
           headers: {
-            "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY,
-            "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-            "Content-Type": "application/json",
-            "Prefer": "return=representation"
-          },
-          body: JSON.stringify({
-            user_id: user_id,
-            generations: 0,
-            plan: "free",
-            period_start: now,
-            updated_at: now
-          })
+            "apikey": process.env.SUPABASE_ANON_KEY,
+            "Authorization": `Bearer ${access_token}`
+          }
         }
       );
 
-      if (!createUsageResponse.ok) {
-        const createError = await createUsageResponse.text();
-        throw new Error(
-          `Unable to create usage record: ${createError}`
-        );
+      if (!userResponse.ok) {
+        return res.status(401).json({
+          success: false,
+          error: "Unauthorized"
+        });
       }
 
-      const createdUsageData = await createUsageResponse.json();
-      usage = createdUsageData?.[0];
+      const authUser = await userResponse.json();
 
-      if (!usage) {
-        throw new Error("Usage record was not created");
+      if (authUser.id !== user_id) {
+        return res.status(401).json({
+          success: false,
+          error: "User verification failed"
+        });
       }
-    }
 
-    const plan = usage.plan || "free";
-    let generationCount = usage.generations || 0;
-
-    const generationLimit = plan === "pro" ? 50 : 5;
-
-    // Monthly reset
-    const periodStart = usage.period_start
-      ? new Date(usage.period_start)
-      : new Date();
-
-    const now = new Date();
-
-    const monthChanged =
-      now.getUTCFullYear() !== periodStart.getUTCFullYear() ||
-      now.getUTCMonth() !== periodStart.getUTCMonth();
-
-    if (monthChanged) {
-      generationCount = 0;
-
-      const resetResponse = await fetch(
+      // Get usage + plan
+      const usageResponse = await fetch(
         `${process.env.SUPABASE_URL}/rest/v1/usage?user_id=eq.${encodeURIComponent(
           user_id
-        )}`,
+        )}&select=generations,plan,period_start`,
         {
-          method: "PATCH",
           headers: {
             "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY,
-            "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-            "Content-Type": "application/json",
-            "Prefer": "return=minimal"
-          },
-          body: JSON.stringify({
-            generations: 0,
-            period_start: now.toISOString(),
-            updated_at: now.toISOString()
-          })
+            "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
+          }
         }
       );
 
-      if (!resetResponse.ok) {
-        const resetError = await resetResponse.text();
-        throw new Error(
-          `Unable to reset monthly usage: ${resetError}`
+      if (!usageResponse.ok) {
+        const usageError = await usageResponse.text();
+        console.error("USAGE ERROR:", usageError);
+        throw new Error(`Unable to check usage: ${usageError}`);
+      }
+
+      const usageData = await usageResponse.json();
+      let usage = usageData?.[0];
+
+      // Create usage record automatically for a new user
+      if (!usage) {
+        const now = new Date().toISOString();
+
+        const createUsageResponse = await fetch(
+          `${process.env.SUPABASE_URL}/rest/v1/usage`,
+          {
+            method: "POST",
+            headers: {
+              "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY,
+              "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+              "Content-Type": "application/json",
+              "Prefer": "return=representation"
+            },
+            body: JSON.stringify({
+              user_id: user_id,
+              generations: 0,
+              plan: "free",
+              period_start: now,
+              updated_at: now
+            })
+          }
+        );
+
+        if (!createUsageResponse.ok) {
+          const createError = await createUsageResponse.text();
+          throw new Error(`Unable to create usage record: ${createError}`);
+        }
+
+        const createdUsageData = await createUsageResponse.json();
+        usage = createdUsageData?.[0];
+      }
+
+      plan = usage?.plan || "free";
+      generationCount = usage?.generations || 0;
+
+      const generationLimit = plan === "pro" ? 50 : 5;
+
+      // Monthly reset
+      const periodStart = usage?.period_start
+        ? new Date(usage.period_start)
+        : new Date();
+
+      const now = new Date();
+
+      const monthChanged =
+        now.getUTCFullYear() !== periodStart.getUTCFullYear() ||
+        now.getUTCMonth() !== periodStart.getUTCMonth();
+
+      if (monthChanged) {
+        generationCount = 0;
+
+        await fetch(
+          `${process.env.SUPABASE_URL}/rest/v1/usage?user_id=eq.${encodeURIComponent(
+            user_id
+          )}`,
+          {
+            method: "PATCH",
+            headers: {
+              "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY,
+              "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+              "Content-Type": "application/json",
+              "Prefer": "return=minimal"
+            },
+            body: JSON.stringify({
+              generations: 0,
+              period_start: now.toISOString(),
+              updated_at: now.toISOString()
+            })
+          }
         );
       }
-    }
 
-    // Check generation limit
-    if (generationCount >= generationLimit) {
-      return res.status(403).json({
-        success: false,
-        error:
-          plan === "pro"
-            ? "You have reached your 50 generations monthly limit."
-            : "You have reached your 5 generations monthly limit."
-      });
+      // Check generation limit
+      if (generationCount >= generationLimit) {
+        return res.status(403).json({
+          success: false,
+          error:
+            plan === "pro"
+              ? "You have reached your 50 generations monthly limit."
+              : "You have reached your 5 generations monthly limit."
+        });
+      }
     }
 
     const prompt = `Create 5 DIFFERENT, high-quality LinkedIn posts on the same topic.
@@ -249,10 +242,10 @@ IMPORTANT:
 - Do not add any extra text between SCORES and BEST POST.
 
 Topic: ${topic}
-Language: ${language}
-Tone: ${tone}
+Language: ${language || "English"}
+Tone: ${tone || "Professional"}
 Audience: ${audience || "general LinkedIn audience"}
-Post length: ${length}
+Post length: ${length || "Medium"}
 
 Do not mention that you are an AI.
 Do not add explanations outside the posts and scores.`;
@@ -297,32 +290,27 @@ Do not add explanations outside the posts and scores.`;
       throw new Error("No post returned from AI");
     }
 
-    // Count this generation only after successful AI response
-    const newCount = generationCount + 1;
+    // जर युझर लॉगिन असेल, तरच सुपाबेसमध्ये त्याचा काऊंट +1 करा
+    if (!isGuest) {
+      const newCount = generationCount + 1;
 
-    const updateResponse = await fetch(
-      `${process.env.SUPABASE_URL}/rest/v1/usage?user_id=eq.${encodeURIComponent(
-        user_id
-      )}`,
-      {
-        method: "PATCH",
-        headers: {
-          "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY,
-          "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-          "Content-Type": "application/json",
-          "Prefer": "return=minimal"
-        },
-        body: JSON.stringify({
-          generations: newCount,
-          updated_at: new Date().toISOString()
-        })
-      }
-    );
-
-    if (!updateResponse.ok) {
-      const updateError = await updateResponse.text();
-      throw new Error(
-        `Unable to update usage: ${updateError}`
+      await fetch(
+        `${process.env.SUPABASE_URL}/rest/v1/usage?user_id=eq.${encodeURIComponent(
+          user_id
+        )}`,
+        {
+          method: "PATCH",
+          headers: {
+            "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY,
+            "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal"
+          },
+          body: JSON.stringify({
+            generations: newCount,
+            updated_at: new Date().toISOString()
+          })
+        }
       );
     }
 
