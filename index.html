@@ -702,7 +702,13 @@ async function submitFeedback() {
   }
 }
   
-async function generatePost() {
+async function generatePost() { 
+
+  const guestId =
+    localStorage.getItem("postmitra_guest_id") ||
+    crypto.randomUUID();
+
+  localStorage.setItem("postmitra_guest_id", guestId);
 
   const topic = document.getElementById("topic").value.trim();
   const language = document.getElementById("language").value;
