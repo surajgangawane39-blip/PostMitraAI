@@ -261,7 +261,7 @@ Do not add explanations outside the posts and scores.`;
           "X-Title": "PostMitra AI"
         },
         body: JSON.stringify({
-          model: "dots-studio/dots-3-note-preview:free",
+          model: "meta-llama/llama-3.3-70b-instruct:free",
           messages: [
             {
               role: "user",
