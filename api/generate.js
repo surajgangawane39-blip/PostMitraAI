@@ -246,8 +246,8 @@ Post length: ${length || "Medium"}
 Do not mention that you are an AI.
 Do not add explanations outside the posts and scores.`;
 
-    // Google ने एररमध्ये थेट सुचवलेले अधिकृत मॉडेल (gemini-3.1-pro-preview)
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${process.env.GEMINI_API_KEY}`;
+    // Google Free Tier var chalnare Flash model
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
     const response = await fetch(geminiUrl, {
       method: "POST",
@@ -266,7 +266,11 @@ Do not add explanations outside the posts and scores.`;
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error?.message || "Gemini generation failed");
+      const errMsg = data.error?.message || "Gemini generation failed";
+      if (errMsg.includes("high demand") || errMsg.includes("temporarily unavailable")) {
+        throw new Error("Google server busy ahe. Krupaya 10-15 secondani parat Generate dabun bagha.");
+      }
+      throw new Error(errMsg);
     }
 
     const post = data.candidates?.[0]?.content?.parts?.[0]?.text;
