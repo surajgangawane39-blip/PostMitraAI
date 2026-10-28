@@ -29,7 +29,7 @@ export default async function handler(req, res) {
     let generationCount = 0;
     let plan = "free";
 
-    // जर युझर लॉगिन असेल, तरच Supabase मध्ये व्हेरिफाय करा आणि लिमिट तपासा
+    // Jar user login asel, tarch Supabase madhe verify kara aani limit check kara
     if (!isGuest) {
       const userResponse = await fetch(
         `${process.env.SUPABASE_URL}/auth/v1/user`,
@@ -261,7 +261,7 @@ Do not add explanations outside the posts and scores.`;
           "X-Title": "PostMitra AI"
         },
         body: JSON.stringify({
-          model: "google/gemini-2.0-flash-exp:free",
+          model: "meta-llama/llama-3.1-8b-instruct:free",
           messages: [
             {
               role: "user",
@@ -290,7 +290,7 @@ Do not add explanations outside the posts and scores.`;
       throw new Error("No post returned from AI");
     }
 
-    // जर युझर लॉगिन असेल, तरच सुपाबेसमध्ये त्याचा काऊंट +1 करा
+    // Jar user login asel, tarch Supabase madhe count +1 kara
     if (!isGuest) {
       const newCount = generationCount + 1;
 
