@@ -246,8 +246,8 @@ Post length: ${length || "Medium"}
 Do not mention that you are an AI.
 Do not add explanations outside the posts and scores.`;
 
-    // Direct Google Gemini API Call (Official v1beta gemini-2.0-flash)
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+    // Updated Google Gemini API Endpoint (gemini-3.8-flash)
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
     const response = await fetch(geminiUrl, {
       method: "POST",
