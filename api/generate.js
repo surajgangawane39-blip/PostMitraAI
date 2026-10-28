@@ -246,50 +246,33 @@ Post length: ${length || "Medium"}
 Do not mention that you are an AI.
 Do not add explanations outside the posts and scores.`;
 
-    // High demand avoid karnyasaathi stable models chi fallback array
-    const candidateModels = [
-      "gemini-3.8-flash",
-      "gemini-2.5-flash",
-      "gemini-2.5-pro"
-    ];
+    // Google ने एररमध्ये थेट सुचवलेले अधिकृत मॉडेल (gemini-3.1-pro-preview)
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
-    let post = null;
-    let lastError = null;
+    const response = await fetch(geminiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: prompt }]
+          }
+        ]
+      })
+    });
 
-    for (const modelName of candidateModels) {
-      try {
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${process.env.GEMINI_API_KEY}`;
-        
-        const response = await fetch(geminiUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                role: "user",
-                parts: [{ text: prompt }]
-              }
-            ]
-          })
-        });
+    const data = await response.json();
 
-        const data = await response.json();
-
-        if (response.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
-          post = data.candidates[0].content.parts[0].text;
-          break; // Ek model ne response dila ki lagech baher padel
-        } else {
-          lastError = data.error?.message || "Generation failed";
-        }
-      } catch (err) {
-        lastError = err.message;
-      }
+    if (!response.ok) {
+      throw new Error(data.error?.message || "Gemini generation failed");
     }
 
+    const post = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
     if (!post) {
-      throw new Error(lastError || "High traffic on all models. Please try again in a few seconds.");
+      throw new Error("No text received from Gemini API");
     }
 
     // Increment count if logged in
