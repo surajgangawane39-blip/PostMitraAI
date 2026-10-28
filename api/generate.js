@@ -246,37 +246,54 @@ Post length: ${length || "Medium"}
 Do not mention that you are an AI.
 Do not add explanations outside the posts and scores.`;
 
-    // Google Free Tier var chalnare Flash model
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
-    const response = await fetch(geminiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: prompt }]
-          }
-        ]
-      })
-    });
+    let post = null;
+    let lastError = null;
 
-    const data = await response.json();
+    // Server busy asel tar 3 vela auto-retry karel
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const response = await fetch(geminiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [{ text: prompt }]
+              }
+            ]
+          })
+        });
 
-    if (!response.ok) {
-      const errMsg = data.error?.message || "Gemini generation failed";
-      if (errMsg.includes("high demand") || errMsg.includes("temporarily unavailable")) {
-        throw new Error("Google server busy ahe. Krupaya 10-15 secondani parat Generate dabun bagha.");
+        const data = await response.json();
+
+        if (response.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
+          post = data.candidates[0].content.parts[0].text;
+          break;
+        }
+
+        lastError = data.error?.message || "Gemini generation failed";
+
+        // Busy aslyas thoda vel thambun pudhcha try
+        if (attempt < 3) {
+          await new Promise((resolve) => setTimeout(resolve, 2500));
+        }
+      } catch (err) {
+        lastError = err.message;
+        if (attempt < 3) {
+          await new Promise((resolve) => setTimeout(resolve, 2500));
+        }
       }
-      throw new Error(errMsg);
     }
 
-    const post = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
     if (!post) {
-      throw new Error("No text received from Gemini API");
+      if (lastError && (lastError.includes("high demand") || lastError.includes("temporarily unavailable"))) {
+        throw new Error("Google free server var khup jast load ahe. Krupaya 20-30 secondanantarch prayatna kara.");
+      }
+      throw new Error(lastError || "No text received from Gemini API");
     }
 
     // Increment count if logged in
