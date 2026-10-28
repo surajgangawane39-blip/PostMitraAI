@@ -230,39 +230,66 @@ CTA: 16/20
 
 BEST POST: POST 3
 
+IMPORTANT:
+- Use exactly the labels HOOK, VALUE, READABILITY, ENGAGEMENT, CTA.
+- Use exactly the format NUMBER/20 for every category.
+- Total score must equal the sum of the five category scores.
+- Do not use Markdown tables for scores.
+- Do not add any extra text between SCORES and BEST POST.
+
 Topic: ${topic}
 Language: ${language || "English"}
 Tone: ${tone || "Professional"}
 Audience: ${audience || "general LinkedIn audience"}
-Post length: ${length || "Medium"}`;
+Post length: ${length || "Medium"}
 
-    // Google ne console madhe sangitlela official model (gemini-3.8-flash)
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+Do not mention that you are an AI.
+Do not add explanations outside the posts and scores.`;
 
-    const response = await fetch(geminiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: prompt }]
-          }
-        ]
-      })
-    });
+    // High demand avoid karnyasaathi stable models chi fallback array
+    const candidateModels = [
+      "gemini-3.8-flash",
+      "gemini-2.5-flash",
+      "gemini-2.5-pro"
+    ];
 
-    const data = await response.json();
+    let post = null;
+    let lastError = null;
 
-    if (!response.ok) {
-      throw new Error(data.error?.message || "Gemini generation failed");
+    for (const modelName of candidateModels) {
+      try {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${process.env.GEMINI_API_KEY}`;
+        
+        const response = await fetch(geminiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: "user",
+                parts: [{ text: prompt }]
+              }
+            ]
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
+          post = data.candidates[0].content.parts[0].text;
+          break; // Ek model ne response dila ki lagech baher padel
+        } else {
+          lastError = data.error?.message || "Generation failed";
+        }
+      } catch (err) {
+        lastError = err.message;
+      }
     }
 
-    const post = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
     if (!post) {
-      throw new Error("No text received from Gemini API");
+      throw new Error(lastError || "High traffic on all models. Please try again in a few seconds.");
     }
 
     // Increment count if logged in
