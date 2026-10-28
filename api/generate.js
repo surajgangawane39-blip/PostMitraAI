@@ -246,15 +246,19 @@ Post length: ${length || "Medium"}
 Do not mention that you are an AI.
 Do not add explanations outside the posts and scores.`;
 
-    // High demand aslyas backup model sathi fallback list
-    const candidateModels = ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-1.5-flash"];
+    // अचूक आणि कार्यरत URL ची यादी (v1 आणि v1beta दोन्ही सपोर्ट)
+    const targetEndpoints = [
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`
+    ];
+
     let post = null;
     let lastError = null;
 
-    for (const modelName of candidateModels) {
+    for (const url of targetEndpoints) {
       try {
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${process.env.GEMINI_API_KEY}`;
-        const response = await fetch(geminiUrl, {
+        const response = await fetch(url, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -269,9 +273,10 @@ Do not add explanations outside the posts and scores.`;
         });
 
         const data = await response.json();
+
         if (response.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
           post = data.candidates[0].content.parts[0].text;
-          break; // Utar bhetla ki loop stop hoil
+          break; // यशस्वी रिस्पॉन्स मिळाल्यावर लूप थांबेल
         } else {
           lastError = data.error?.message || "Generation failed";
         }
@@ -281,7 +286,7 @@ Do not add explanations outside the posts and scores.`;
     }
 
     if (!post) {
-      throw new Error(lastError || "No post returned from AI. High demand, please retry.");
+      throw new Error(lastError || "No post returned from AI.");
     }
 
     // Increment count if logged in
