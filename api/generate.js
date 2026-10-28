@@ -246,36 +246,42 @@ Post length: ${length || "Medium"}
 Do not mention that you are an AI.
 Do not add explanations outside the posts and scores.`;
 
-    // Updated Google Gemini API Endpoint (gemini-3.8-flash)
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+    // High demand aslyas backup model sathi fallback list
+    const candidateModels = ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-1.5-flash"];
+    let post = null;
+    let lastError = null;
 
-    const response = await fetch(geminiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: prompt }]
-          }
-        ]
-      })
-    });
+    for (const modelName of candidateModels) {
+      try {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${process.env.GEMINI_API_KEY}`;
+        const response = await fetch(geminiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [{ text: prompt }]
+              }
+            ]
+          })
+        });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        data.error?.message ||
-          "Gemini API request failed"
-      );
+        const data = await response.json();
+        if (response.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
+          post = data.candidates[0].content.parts[0].text;
+          break; // Utar bhetla ki loop stop hoil
+        } else {
+          lastError = data.error?.message || "Generation failed";
+        }
+      } catch (err) {
+        lastError = err.message;
+      }
     }
 
-    const post = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
     if (!post) {
-      throw new Error("No post returned from AI");
+      throw new Error(lastError || "No post returned from AI. High demand, please retry.");
     }
 
     // Increment count if logged in
