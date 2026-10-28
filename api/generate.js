@@ -29,7 +29,7 @@ export default async function handler(req, res) {
     let generationCount = 0;
     let plan = "free";
 
-    // Jar user login asel, tarch Supabase madhe verify kara aani limit check kara
+    // Supabase login verification
     if (!isGuest) {
       const userResponse = await fetch(
         `${process.env.SUPABASE_URL}/auth/v1/user`,
@@ -57,7 +57,6 @@ export default async function handler(req, res) {
         });
       }
 
-      // Get usage + plan
       const usageResponse = await fetch(
         `${process.env.SUPABASE_URL}/rest/v1/usage?user_id=eq.${encodeURIComponent(
           user_id
@@ -79,7 +78,6 @@ export default async function handler(req, res) {
       const usageData = await usageResponse.json();
       let usage = usageData?.[0];
 
-      // Create usage record automatically for a new user
       if (!usage) {
         const now = new Date().toISOString();
 
@@ -117,7 +115,6 @@ export default async function handler(req, res) {
 
       const generationLimit = plan === "pro" ? 50 : 5;
 
-      // Monthly reset
       const periodStart = usage?.period_start
         ? new Date(usage.period_start)
         : new Date();
@@ -152,7 +149,6 @@ export default async function handler(req, res) {
         );
       }
 
-      // Check generation limit
       if (generationCount >= generationLimit) {
         return res.status(403).json({
           success: false,
@@ -250,47 +246,39 @@ Post length: ${length || "Medium"}
 Do not mention that you are an AI.
 Do not add explanations outside the posts and scores.`;
 
-    const response = await fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://post-mitra-ai.vercel.app",
-          "X-Title": "PostMitra AI"
-        },
-        body: JSON.stringify({
-          model: "meta-llama/llama-3.1-8b-instruct:free",
-          messages: [
-            {
-              role: "user",
-              content: prompt
-            }
-          ]
-        })
-      }
-    );
+    // Direct Google Gemini API Call
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+
+    const response = await fetch(geminiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: prompt }]
+          }
+        ]
+      })
+    });
 
     const data = await response.json();
 
     if (!response.ok) {
       throw new Error(
         data.error?.message ||
-          data.error ||
-          "OpenRouter request failed"
+          "Gemini API request failed"
       );
     }
 
-    const post =
-      data.choices?.[0]?.message?.content ||
-      data.choices?.[0]?.text;
+    const post = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!post) {
       throw new Error("No post returned from AI");
     }
 
-    // Jar user login asel, tarch Supabase madhe count +1 kara
+    // Increment count if logged in
     if (!isGuest) {
       const newCount = generationCount + 1;
 
