@@ -230,48 +230,41 @@ CTA: 16/20
 
 BEST POST: POST 3
 
-IMPORTANT:
-- Use exactly the labels HOOK, VALUE, READABILITY, ENGAGEMENT, CTA.
-- Use exactly the format NUMBER/20 for every category.
-- Total score must equal the sum of the five category scores.
-- Do not use Markdown tables for scores.
-- Do not add any extra text between SCORES and BEST POST.
-
 Topic: ${topic}
 Language: ${language || "English"}
 Tone: ${tone || "Professional"}
 Audience: ${audience || "general LinkedIn audience"}
-Post length: ${length || "Medium"}
+Post length: ${length || "Medium"}`;
 
-Do not mention that you are an AI.
-Do not add explanations outside the posts and scores.`;
-
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
-
-    const response = await fetch(geminiUrl, {
+    // Groq High-Speed Llama 3 Endpoint
+    const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
+        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        contents: [
+        model: "llama-3.3-70b-versatile",
+        messages: [
           {
-            parts: [{ text: prompt }]
+            role: "user",
+            content: prompt
           }
-        ]
+        ],
+        temperature: 0.7
       })
     });
 
-    const data = await response.json();
+    const data = await groqResponse.json();
 
-    if (!response.ok) {
-      throw new Error(data.error?.message || "Gemini generation failed");
+    if (!groqResponse.ok) {
+      throw new Error(data.error?.message || "Groq generation failed");
     }
 
-    const post = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const post = data.choices?.[0]?.message?.content;
 
     if (!post) {
-      throw new Error("No text received from Gemini API");
+      throw new Error("No text received from Groq API");
     }
 
     // Increment count if logged in
