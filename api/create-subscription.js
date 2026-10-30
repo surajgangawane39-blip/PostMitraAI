@@ -31,13 +31,12 @@ export default async function handler(req, res) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          plan_id:"plan_Th9P9SJnTunuk1",
+          plan_id: "plan_Th9P9SJnTunuk1",
           total_count: 12,
           customer_notify: 1,
           notes: {
-  postmitra_user_id: user_id,
-  referral_code: referral_code || ""
-}
+            postmitra_user_id: user_id,
+            referral_code: referral_code || ""
           }
         })
       }
