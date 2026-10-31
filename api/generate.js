@@ -236,7 +236,7 @@ Tone: ${tone || "Professional"}
 Audience: ${audience || "general LinkedIn audience"}
 Post length: ${length || "Medium"}`;
 
-    // Groq High-Speed Llama 3 Endpoint
+    // Groq वरील कायम उपलब्ध असणारे अधिकृत Llama 3 मॉडेल
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -244,7 +244,7 @@ Post length: ${length || "Medium"}`;
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "llama3-70b-8192",
         messages: [
           {
             role: "user",
