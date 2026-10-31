@@ -236,7 +236,7 @@ Tone: ${tone || "Professional"}
 Audience: ${audience || "general LinkedIn audience"}
 Post length: ${length || "Medium"}`;
 
-    // Groq वरील सध्याचे अधिकृत व सक्रिय मॉडेल
+    // Groq Production Model (openai/gpt-oss-120b)
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -244,7 +244,7 @@ Post length: ${length || "Medium"}`;
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
+        model: "openai/gpt-oss-120b",
         messages: [
           {
             role: "user",
