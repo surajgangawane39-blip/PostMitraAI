@@ -1126,9 +1126,20 @@ async function submitFeedback() {
 })();
 async function buyStarterPack() {
   try {
-    const user = supabaseClient.auth.user();
+    // Supabase v1 आणि v2 दोन्ही व्हर्जन्ससाठी सुरक्षित ऑथ चेक
+    let user = null;
+
+    if (typeof supabaseClient.auth.getUser === "function") {
+      const { data } = await supabaseClient.auth.getUser();
+      user = data?.user;
+    } else if (typeof supabaseClient.auth.user === "function") {
+      user = supabaseClient.auth.user();
+    } else if (typeof supabaseClient.auth.session === "function") {
+      user = supabaseClient.auth.session()?.user;
+    }
+
     if (!user) {
-      alert("कृपया आधी लॉगिन करा!");
+      alert("कृपया आधी Google किंवा Email ने लॉगिन करा!");
       return;
     }
 
@@ -1141,7 +1152,7 @@ async function buyStarterPack() {
 
     const orderData = await res.json();
     if (!orderData.success) {
-      alert("ऑर्डर एरर: " + orderData.error);
+      alert("ऑर्डर एरर: " + (orderData.error || "Order creation failed"));
       return;
     }
 
