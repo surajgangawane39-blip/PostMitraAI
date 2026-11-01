@@ -1078,6 +1078,72 @@ async function submitFeedback() {
   const ref = params.get("ref");
   if (ref) localStorage.setItem("postmitra_ref", ref);
 })();
+async function buyStarterPack() {
+  try {
+    const user = supabaseClient.auth.user();
+    if (!user) {
+      alert("कृपया आधी लॉगिन करा!");
+      return;
+    }
+
+    // १. बॅकएंडकडून ₹४९ चा ऑर्डर आयडी मागवणे
+    const res = await fetch("/api/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: user.id })
+    });
+
+    const orderData = await res.json();
+    if (!orderData.success) {
+      alert("ऑर्डर एरर: " + orderData.error);
+      return;
+    }
+
+    // २. Razorpay UPI चेकआऊट उघडणे
+    const options = {
+      key: orderData.key_id,
+      amount: orderData.amount,
+      currency: orderData.currency,
+      name: "PostMitra AI",
+      description: "Starter Pack (25 Posts) - ₹49 One-Time",
+      order_id: orderData.order_id,
+      handler: async function (response) {
+        // ३. पेमेंट व्हेरिफाय करून खात्यात क्रेडिट्स जमा करणे
+        const verifyRes = await fetch("/api/verify-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            user_id: user.id
+          })
+        });
+
+        const verifyData = await verifyRes.json();
+        if (verifyData.success) {
+          alert("अभिनंदन! ₹४९ चे पेमेंट यशस्वी झाले. तुमच्या खात्यात २५ पोस्ट्स जमा झाल्या आहेत!");
+          window.location.reload();
+        } else {
+          alert("व्हेरिफिकेशन एरर: " + verifyData.error);
+        }
+      },
+      prefill: {
+        email: user.email || ""
+      },
+      theme: {
+        color: "#0a66c2"
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+
+  } catch (err) {
+    console.error("Payment error:", err);
+    alert("पेमेंट सुरू करताना अडचण आली: " + err.message);
+  }
+}
 </script>
 
 </body>
